@@ -1,47 +1,32 @@
 package com.empresa.adminpanel
 
 import androidx.compose.runtime.*
-import com.empresa.adminpanel.components.Navbar
+import com.empresa.adminpanel.components.AdminLayout
 import com.empresa.adminpanel.screens.*
+import org.jetbrains.compose.web.css.Style
 import org.jetbrains.compose.web.renderComposable
+import style.AppStyles
 
 fun main() {
 
     renderComposable(rootElementId = "root") {
 
-        App()
-    }
-}
+        Style(AppStyles)
 
-@Composable
-fun App() {
+        var loggedIn by remember { mutableStateOf(false) }
 
-    var loggedIn by remember { mutableStateOf(false) }
-    var screen by remember { mutableStateOf("usuarios") }
+        if (!loggedIn) {
 
-    if (!loggedIn) {
+            LoginScreen {
+                loggedIn = true
+            }
 
-        LoginScreen {
-            loggedIn = true
-        }
+        } else {
 
-    } else {
-
-        Navbar { selected ->
-            screen = selected
-        }
-
-        when (screen) {
-
-            "usuarios" -> UsuariosScreen()
-
-            "fichajes" -> FichajesScreen()
-
-            "vacaciones" -> VacacionesScreen()
-
-            "faltas" -> FaltasScreen()
-
-            "documentos" -> DocumentosScreen()
+            AdminLayout {
+                loggedIn = false
+            }
         }
     }
 }
+

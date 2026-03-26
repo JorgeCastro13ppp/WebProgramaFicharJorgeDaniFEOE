@@ -1,101 +1,148 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
-import com.empresa.adminpanel.ApiClient
 import kotlinx.browser.window
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.web.dom.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.web.attributes.InputType
+import org.jetbrains.compose.web.dom.*
+import org.jetbrains.compose.web.attributes.*
+import org.jetbrains.compose.web.css.CSSNumeric
+import org.jetbrains.compose.web.css.DisplayStyle
+import org.jetbrains.compose.web.css.display
+import org.jetbrains.compose.web.css.keywords.auto
+import org.jetbrains.compose.web.css.marginBottom
+import org.jetbrains.compose.web.css.marginLeft
+import org.jetbrains.compose.web.css.marginRight
+import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.css.width
 import org.w3c.fetch.Headers
-import kotlin.js.JSON
-import kotlin.js.json
+import style.AppStyles
 
-private val scope = MainScope()
+@Serializable
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf("") }
 
-    Div {
+    val scope = rememberCoroutineScope()
 
-        H2 { Text("Admin Panel Login") }
+    fun login() {
 
-        Input(type = InputType.Text, attrs = {
-            onInput { username = it.value }
-        })
+        scope.launch {
 
-        Br()
+            val headers = Headers()
+            headers.append("Content-Type", "application/json")
 
-        Input(type = InputType.Password, attrs = {
-            onInput { password = it.value }
-        })
+            val body = Json.encodeToString(
+                LoginRequest(username, password)
+            )
 
-        Br()
+            val requestInit = js("{}")
 
-        Button(attrs = {
+            requestInit.method = "POST"
+            requestInit.headers = headers
+            requestInit.body = body
 
-            onClick {
+            val response = window.fetch(
+                "http://127.0.0.1:8080/login",
+                requestInit
+            ).await()
 
-                scope.launch {
+            if (response.ok) {
 
-                    try {
+                val json =
+                    JSON.parse<dynamic>(
+                        response.text().await()
+                    )
 
-                        val requestInit = js("{}")
+                window.localStorage.setItem(
+                    "token",
+                    json.token as String
+                )
 
-                        requestInit.method = "POST"
+                window.localStorage.setItem(
+                    "username",
+                    username
+                )
 
-                        requestInit.headers = Headers().apply {
-                            append("Content-Type", "application/json")
-                        }
-
-                        requestInit.body = JSON.stringify(
-                            json(
-                                "username" to username,
-                                "password" to password
-                            )
-                        )
-
-                        val response = window.fetch(
-                            "${ApiClient.BASE_URL}/login",
-                            requestInit
-                        ).await()
-
-                        if (response.ok) {
-
-                            val text = response.text().await()
-
-                            val json = JSON.parse<dynamic>(text)
-
-                            val token = json.token as String
-
-                            window.localStorage.setItem("token", token)
-
-                            onLoginSuccess()
-                        } else {
-
-                            errorMessage = "Credenciales incorrectas"
-                        }
-
-                    } catch (e: Exception) {
-
-                        errorMessage = "Error conectando con el servidor"
-                    }
-                }
+                onLoginSuccess()
             }
+        }
+    }
+
+    Div({
+        classes(AppStyles.loginContainer)
+    }) {
+
+        Div({
+            classes(AppStyles.loginCard)
         }) {
 
-            Text("Login")
-        }
+            Img(
+                src = "/icons/admin.svg",
+                attrs = {
+                    style {
+                        width(48.px)
+                        marginBottom(14.px)
+                        display(DisplayStyle.Block)
+                        marginLeft(auto as CSSNumeric)
+                        marginRight(auto as CSSNumeric)
+                    }
+                }
+            )
 
-        if (errorMessage.isNotEmpty()) {
+            H2({
+                classes(AppStyles.loginTitle)
+            }) {
+                Text("Admin Panel")
+            }
 
-            P {
-                Text(errorMessage)
+            Input(InputType.Text, attrs = {
+
+                classes(AppStyles.loginInput)
+
+                attr("placeholder", "Usuario")
+
+                value(username)
+
+                onInput { event ->
+                    username = event.value
+                }
+            })
+
+            Input(InputType.Password, attrs = {
+
+                classes(AppStyles.loginInput)
+
+                attr("placeholder", "Contraseña")
+
+                value(password)
+
+                onInput { event ->
+                    password = event.value
+                }
+            })
+
+            Button({
+
+                classes(AppStyles.loginButton)
+
+                onClick {
+                    login()
+                }
+
+            }) {
+                Text("Acceder")
             }
         }
     }
