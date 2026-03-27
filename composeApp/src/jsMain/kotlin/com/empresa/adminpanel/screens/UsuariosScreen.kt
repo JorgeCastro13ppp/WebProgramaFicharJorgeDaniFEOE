@@ -244,6 +244,11 @@ fun UsuariosScreen() {
 
             ConfirmDialog(
                 message = "¿Seguro que quieres eliminar este usuario?",
+
+                confirmText = "Eliminar",
+
+                confirmClass = AppStyles.deleteButton,
+
                 onConfirm = {
 
                     deleting = true
@@ -258,7 +263,9 @@ fun UsuariosScreen() {
                         showDialog = false
                     }
                 },
+
                 onCancel = {
+
                     showDialog = false
                 }
             )

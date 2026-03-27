@@ -1,13 +1,22 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.models.Vacacion
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.web.css.AlignItems
+import org.jetbrains.compose.web.css.DisplayStyle
+import org.jetbrains.compose.web.css.alignItems
+import org.jetbrains.compose.web.css.display
+import org.jetbrains.compose.web.css.gap
+import org.jetbrains.compose.web.css.marginBottom
+import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.*
 import org.w3c.fetch.Headers
+import style.AppStyles
 
 @Composable
 fun VacacionesScreen() {
@@ -16,20 +25,35 @@ fun VacacionesScreen() {
         mutableStateOf<List<Vacacion>>(emptyList())
     }
 
+    var selectedVacacionId by remember { mutableStateOf<Int?>(null) }
+
+    var nuevoEstado by remember { mutableStateOf("") }
+
+    var showDialog by remember { mutableStateOf(false) }
+    var loading by remember {
+        mutableStateOf(true)
+    }
+
     val scope = rememberCoroutineScope()
 
     fun cargarVacaciones() {
 
         scope.launch {
 
+            loading = true
+
             val token = window.localStorage.getItem("token")
                 ?: return@launch
 
             val headers = Headers()
 
-            headers.append("Authorization", "Bearer $token")
+            headers.append(
+                "Authorization",
+                "Bearer $token"
+            )
 
             val requestInit = js("{}")
+
             requestInit.method = "GET"
             requestInit.headers = headers
 
@@ -45,10 +69,15 @@ fun VacacionesScreen() {
                 vacaciones =
                     Json.decodeFromString(text)
             }
+
+            loading = false
         }
     }
 
-    fun actualizarEstado(id: Int, estado: String) {
+    fun actualizarEstado(
+        id: Int,
+        estado: String
+    ) {
 
         scope.launch {
 
@@ -60,6 +89,7 @@ fun VacacionesScreen() {
             headers.append("Authorization", "Bearer $token")
 
             val requestInit = js("{}")
+
             requestInit.method = "PUT"
             requestInit.headers = headers
 
@@ -78,30 +108,298 @@ fun VacacionesScreen() {
 
     Div {
 
-        H2 { Text("Gestión de vacaciones") }
+        /* HEADER */
 
-        vacaciones.forEach { vacacion ->
+        Div({
 
-            Div {
+            style {
 
-                Text(
-                    "ID ${vacacion.id} | Usuario ${vacacion.userId} | ${vacacion.fechaInicio} → ${vacacion.fechaFin} | ${vacacion.estado}"
+                display(DisplayStyle.Flex)
+
+                alignItems(AlignItems.Center)
+
+                gap(12.px)
+
+                marginBottom(24.px)
+            }
+
+        }) {
+
+            H2({
+
+                classes(AppStyles.title)
+
+            }) {
+
+                Text("Gestión de vacaciones")
+            }
+
+
+            Button({
+
+                classes(AppStyles.secondaryButton)
+
+                onClick {
+
+                    cargarVacaciones()
+                }
+
+            }) {
+
+                Img(
+                    src = "/icons/refresh.svg",
+                    attrs = {
+                        classes(AppStyles.buttonIcon)
+                    }
                 )
 
-                Button(attrs = {
-                    onClick {
-                        actualizarEstado(vacacion.id, "aprobado")
-                    }
-                }) { Text("Aprobar") }
-
-                Button(attrs = {
-                    onClick {
-                        actualizarEstado(vacacion.id, "rechazado")
-                    }
-                }) { Text("Rechazar") }
-
-                Br()
+                Text("Recargar")
             }
+        }
+
+
+        /* TABLA */
+
+        if (loading) {
+
+            Div({
+
+                classes(AppStyles.loaderContainer)
+
+            }) {
+
+                Div({
+
+                    classes(AppStyles.loader)
+
+                }) {}
+            }
+
+        } else {
+
+            Div({
+
+                classes(AppStyles.tableContainer)
+
+            }) {
+
+                Table({
+
+                    classes(AppStyles.table)
+
+                }) {
+
+                    Thead {
+
+                        Tr {
+
+                            Th { Text("ID") }
+
+                            Th { Text("Usuario") }
+
+                            Th { Text("Inicio") }
+
+                            Th { Text("Fin") }
+
+                            Th { Text("Estado") }
+
+                            Th { Text("Acción") }
+                        }
+                    }
+
+
+                    Tbody {
+
+                        vacaciones.forEach { vacacion ->
+
+                            val rowStyle = when (vacacion.estado) {
+
+                                "aprobado" -> AppStyles.rowApproved
+
+                                "rechazado" -> AppStyles.rowRejected
+
+                                else -> null
+                            }
+
+
+                            Tr({
+
+                                if (rowStyle != null) {
+
+                                    classes(rowStyle)
+                                }
+
+                            }) {
+
+                                Td {
+
+                                    Text("${vacacion.id}")
+                                }
+
+
+                                Td {
+
+                                    Text(vacacion.username)
+                                }
+
+
+                                Td {
+
+                                    Text(vacacion.fechaInicio)
+                                }
+
+
+                                Td {
+
+                                    Text(vacacion.fechaFin)
+                                }
+
+
+                                Td {
+
+                                    val badgeClass = when (vacacion.estado) {
+
+                                        "aprobado" ->
+                                            AppStyles.badgeAprobado
+
+                                        "rechazado" ->
+                                            AppStyles.badgeRechazado
+
+                                        else ->
+                                            AppStyles.badgePendiente
+                                    }
+
+
+                                    Span({
+
+                                        classes(badgeClass)
+
+                                    }) {
+
+                                        Text(vacacion.estado.replaceFirstChar { it.uppercase() })
+                                    }
+                                }
+
+
+                                Td({
+
+                                    classes(AppStyles.actionCell)
+
+                                }) {
+
+                                    if (vacacion.estado == "pendiente") {
+
+                                        Div({
+
+                                            classes(AppStyles.actionButtonsGroup)
+
+                                        }) {
+
+                                            Button({
+
+                                                classes(AppStyles.approveButton)
+
+                                                onClick {
+
+                                                    selectedVacacionId =
+                                                        vacacion.id
+
+                                                    nuevoEstado =
+                                                        "aprobado"
+
+                                                    showDialog = true
+                                                }
+
+                                            }) {
+
+                                                Text("Aprobar")
+                                            }
+
+
+                                            Button({
+
+                                                classes(AppStyles.rejectButton)
+
+                                                onClick {
+
+                                                    selectedVacacionId =
+                                                        vacacion.id
+
+                                                    nuevoEstado =
+                                                        "rechazado"
+
+                                                    showDialog = true
+                                                }
+
+                                            }) {
+
+                                                Text("Rechazar")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        /* CONFIRM DIALOG */
+
+        if (showDialog && selectedVacacionId != null) {
+
+            ConfirmDialog(
+
+                message =
+
+                    if (nuevoEstado == "aprobado")
+
+                        "¿Seguro que deseas aprobar estas vacaciones?"
+
+                    else
+
+                        "¿Seguro que deseas rechazar estas vacaciones?",
+
+                confirmText =
+
+                    if (nuevoEstado == "aprobado")
+
+                        "Aprobar"
+
+                    else
+
+                        "Rechazar",
+
+                confirmClass =
+
+                    if (nuevoEstado == "aprobado")
+
+                        AppStyles.approveButton
+
+                    else
+
+                        AppStyles.rejectButton,
+
+                onConfirm = {
+
+                    actualizarEstado(
+
+                        selectedVacacionId!!,
+
+                        nuevoEstado
+                    )
+
+                    showDialog = false
+                },
+
+                onCancel = {
+
+                    showDialog = false
+                }
+            )
         }
     }
 }
+

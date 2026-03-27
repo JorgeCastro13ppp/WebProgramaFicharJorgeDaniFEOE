@@ -250,6 +250,8 @@ object AppStyles : StyleSheet() {
         self + hover style {
             backgroundColor(Color("#1747D1"))
         }
+
+        width(100.percent)
     }
 
     /* Screen transition */
@@ -478,7 +480,6 @@ object AppStyles : StyleSheet() {
 
     val deleteButton by style {
 
-        display(DisplayStyle.Flex)
 
         alignItems(AlignItems.Center)
 
@@ -504,6 +505,8 @@ object AppStyles : StyleSheet() {
             backgroundColor(Color("#A8331D"))
         }
 
+        width(75.percent)
+
     }
 
     val deleteIcon by style {
@@ -516,22 +519,31 @@ object AppStyles : StyleSheet() {
 
     val tableContainer by style {
 
+        maxWidth(1000.px)
+
+        marginLeft(auto as CSSNumeric)
+
+        marginRight(auto as CSSNumeric)
+
         backgroundColor(Color.white)
 
-        borderRadius(12.px)
+        borderRadius(16.px)
 
-        padding(20.px)
+        padding(24.px)
 
-        property("box-shadow", "0 6px 18px rgba(0,0,0,0.05)")
+        property("box-shadow", "0 4px 18px rgba(0,0,0,0.04)")
     }
 
     val table by style {
 
         width(100.percent)
 
-        property("border-collapse", "collapse")
+        textAlign("center")
+        alignItems("center")
 
-        fontSize(14.px)
+        property("border-collapse", "separate")
+
+        property("border-spacing", "0 12px")
     }
 
     val tableHeaderRow by style {
@@ -541,7 +553,6 @@ object AppStyles : StyleSheet() {
 
     val tableHeader by style {
 
-        textAlign("left")
 
         color(Color("#6b7280"))
 
@@ -552,19 +563,18 @@ object AppStyles : StyleSheet() {
 
     val tableRow by style {
 
-        property("transition", "0.15s ease")
+        backgroundColor(Color("#F8FAFC"))
 
-        self + hover style {
-
-            backgroundColor(Color("#f9fafb"))
-        }
+        borderRadius(12.px)
     }
 
     val tableCell by style {
 
-        padding(12.px)
+        padding(14.px)
 
-        property("border-bottom", "1px solid #f1f5f9")
+        fontSize(14.px)
+
+        property("vertical-align", "middle")
     }
 
     val roleBadge by style {
@@ -597,6 +607,9 @@ object AppStyles : StyleSheet() {
     }
 
     val primaryButton by style {
+
+        display(DisplayStyle.Flex)
+        gap(6.px)
 
         padding(10.px, 16.px)
 
@@ -778,5 +791,217 @@ object AppStyles : StyleSheet() {
         width(18.px)
 
         height(18.px)
+    }
+
+    val filterSelect by style {
+
+        padding(8.px, 14.px)
+
+        borderRadius(8.px)
+
+        border {
+
+            style(LineStyle.Solid)
+
+            width(1.px)
+
+            color(Color("#E2E8F0"))
+        }
+
+        backgroundColor(Color.white)
+
+        fontSize(14.px)
+
+        cursor("pointer")
+
+        property("box-shadow", "0 1px 3px rgba(0,0,0,0.04)")
+    }
+
+    val badgeWarning by style {
+
+        backgroundColor(Color("#FEF3C7"))
+        color(Color("#92400E"))
+    }
+
+    val badgeDanger by style {
+
+        backgroundColor(Color("#FEE2E2"))
+        color(Color("#991B1B"))
+    }
+
+    val badgeInfo by style {
+
+        backgroundColor(Color("#DBEAFE"))
+        color(Color("#1E40AF"))
+    }
+
+    val rowApproved by style {
+
+        backgroundColor(Color("#e8f8f1"))
+    }
+
+
+    val rowRejected by style {
+
+        backgroundColor(Color("#fdecea"))
+    }
+
+
+    val approveButton by style {
+
+        backgroundColor(Color("#2ecc71"))
+
+        color(Color.white)
+
+        border {
+            style(LineStyle.None)
+        }
+
+        borderRadius(6.px)
+
+        padding(6.px, 12.px)
+        width(50.percent)
+
+    }
+
+
+    val rejectButton by style {
+
+        backgroundColor(Color("#e74c3c"))
+
+        color(Color.white)
+
+        border {
+            style(LineStyle.None)
+        }
+
+        borderRadius(6.px)
+
+        padding(6.px, 12.px)
+
+        width(50.percent)
+    }
+
+    val badgePendiente by style {
+
+        backgroundColor(Color("#eef2ff"))
+        color(Color("#3b5bdb"))
+
+        padding(6.px, 14.px)
+
+        borderRadius(12.px)
+
+        fontWeight("500")
+    }
+
+    val badgeAprobado by style {
+
+        backgroundColor(Color("#e8f8f1"))
+        color(Color("#27ae60"))
+
+        padding(6.px, 14.px)
+
+        borderRadius(12.px)
+
+        fontWeight("500")
+    }
+
+    val badgeRechazado by style {
+
+        backgroundColor(Color("#fdecea"))
+        color(Color("#e74c3c"))
+
+        padding(6.px, 14.px)
+
+        borderRadius(12.px)
+
+        fontWeight("500")
+    }
+
+    val actionCell by style {
+
+        height(6.vh)
+        textAlign("center")
+    }
+
+    val actionButtonsGroup by style {
+
+        display(DisplayStyle.Flex)
+
+        justifyContent(JustifyContent.Center)
+
+        alignItems(AlignItems.Center)
+
+        gap(8.px)
+    }
+
+    val badgePdf by style {
+
+        backgroundColor(Color("#fde68a"))
+        color(Color("#92400e"))
+
+        padding(6.px, 12.px)
+
+        borderRadius(10.px)
+    }
+
+    val badgeDocumento by style {
+
+        padding(6.px, 14.px)
+
+        borderRadius(12.px)
+
+        fontSize(13.px)
+
+        fontWeight("500")
+
+        property("display", "inline-block")
+    }
+
+    val badgeNomina by style {
+
+        backgroundColor(Color("#dbeafe"))
+
+        color(Color("#1e40af"))
+    }
+
+    val badgeReconocimiento by style {
+
+        backgroundColor(Color("#fee2e2"))
+
+        color(Color("#991b1b"))
+    }
+
+    val badgeFormacion by style {
+
+        backgroundColor(Color("#dcfce7"))
+
+        color(Color("#166534"))
+    }
+
+    val badgeEpis by style {
+
+        backgroundColor(Color("#ede9fe"))
+
+        color(Color("#5b21b6"))
+    }
+
+
+
+
+    val openButton by style {
+
+        backgroundColor(Color("#3b82f6"))
+        color(Color.white)
+
+        border {
+            style(LineStyle.None)
+        }
+
+        borderRadius(6.px)
+
+        padding(6.px, 12.px)
+
+        width(100.percent)
     }
 }

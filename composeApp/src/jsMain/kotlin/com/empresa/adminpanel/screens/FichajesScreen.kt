@@ -141,6 +141,8 @@ fun FichajesScreen() {
     }
 
 
+    /* HEADER */
+
     Div {
 
         /* HEADER */
@@ -155,10 +157,12 @@ fun FichajesScreen() {
 
                 alignItems(AlignItems.Center)
 
-                marginBottom(20.px)
+                marginBottom(28.px)
             }
 
         }) {
+
+            /* IZQUIERDA: título + botón */
 
             Div({
 
@@ -166,21 +170,22 @@ fun FichajesScreen() {
 
                     display(DisplayStyle.Flex)
 
-                    justifyContent(JustifyContent.SpaceBetween)
-
                     alignItems(AlignItems.Center)
 
-                    marginBottom(20.px)
+                    gap(16.px)
                 }
 
             }) {
 
                 H2({
+
                     classes(AppStyles.title)
+
                 }) {
 
                     Text("Fichajes")
                 }
+
 
                 Button({
 
@@ -205,7 +210,11 @@ fun FichajesScreen() {
             }
 
 
+            /* DERECHA: filtro usuarios */
+
             Select({
+
+                classes(AppStyles.filterSelect)
 
                 onChange {
 
@@ -219,7 +228,7 @@ fun FichajesScreen() {
                     Text("Todos los usuarios")
                 }
 
-                usuarios.forEach { usuario->
+                usuarios.forEach { usuario ->
 
                     Option(usuario.id.toString()) {
 
@@ -229,6 +238,8 @@ fun FichajesScreen() {
             }
         }
 
+
+        /* LOADER */
 
         if (loading) {
 
@@ -247,15 +258,20 @@ fun FichajesScreen() {
 
         } else {
 
+            /* TABLA */
+
             Div({
 
-                classes(AppStyles.tableContainer)
+                classes(
+                    AppStyles.tableContainer,
+                    AppStyles.tableWrapperCentered
+                )
 
             }) {
 
                 Table({
 
-                    classes(AppStyles.table, AppStyles.tableWrapperCentered)
+                    classes(AppStyles.table)
 
                 }) {
 
@@ -359,19 +375,22 @@ fun FichajesScreen() {
         }
 
 
+        /* DIALOGO CONFIRMACIÓN */
+
         if (showDialog && selectedFichajeId != null) {
 
             ConfirmDialog(
-
                 message = "¿Eliminar fichaje?",
+
+                confirmText = "Eliminar",
+
+                confirmClass = AppStyles.deleteButton,
 
                 onConfirm = {
 
                     scope.launch {
 
-                        eliminarFichaje(
-                            selectedFichajeId!!
-                        )
+                        eliminarFichaje(selectedFichajeId!!)
 
                         cargarFichajes()
 
