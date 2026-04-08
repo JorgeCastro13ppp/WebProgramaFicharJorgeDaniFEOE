@@ -2,12 +2,14 @@ package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
 import com.empresa.adminpanel.components.ConfirmDialog
+import com.empresa.adminpanel.components.CreateFichajeDialog
 import com.empresa.adminpanel.models.Fichaje
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.fetch.Headers
@@ -27,8 +29,39 @@ fun FichajesScreen() {
     var showDialog by remember { mutableStateOf(false) }
     var selectedFichajeId by remember { mutableStateOf<Int?>(null) }
 
+    var filtroTipo by remember {
+        mutableStateOf("todos")
+    }
+
+    var showCreateDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var filtroFecha by remember { mutableStateOf("") }
+
+
     val scope = rememberCoroutineScope()
 
+    fun badgeClass(tipo: String): String {
+
+        return when {
+
+            tipo.contains("entrada") ->
+                AppStyles.badgeGreen
+
+            tipo.contains("salida") ->
+                AppStyles.badgeRed
+
+            tipo.contains("viaje") ->
+                AppStyles.badgeBlue
+
+            tipo.contains("descanso") ->
+                AppStyles.badgeOrange
+
+            else ->
+                AppStyles.badgeDefault
+        }
+    }
 
     fun cargarUsuarios() {
 
@@ -126,6 +159,24 @@ fun FichajesScreen() {
         ).await()
     }
 
+    if (showCreateDialog) {
+
+        CreateFichajeDialog(
+
+            usuarios = usuarios,
+
+            onClose = {
+
+                showCreateDialog = false
+            },
+
+            onCreated = {
+
+                cargarFichajes()
+            }
+        )
+    }
+
 
     LaunchedEffect(Unit) {
 
@@ -152,26 +203,21 @@ fun FichajesScreen() {
             style {
 
                 display(DisplayStyle.Flex)
-
                 justifyContent(JustifyContent.SpaceBetween)
-
                 alignItems(AlignItems.Center)
-
                 marginBottom(28.px)
             }
 
         }) {
 
-            /* IZQUIERDA: título + botón */
+            /* IZQUIERDA: título + recargar */
 
             Div({
 
                 style {
 
                     display(DisplayStyle.Flex)
-
                     alignItems(AlignItems.Center)
-
                     gap(16.px)
                 }
 
@@ -210,33 +256,123 @@ fun FichajesScreen() {
             }
 
 
-            /* DERECHA: filtro usuarios */
+            /* DERECHA: filtros + botón crear */
 
-            Select({
+            Div({
 
-                classes(AppStyles.filterSelect)
+                style {
 
-                onChange {
-
-                    selectedUserId = it.target.value
+                    display(DisplayStyle.Flex)
+                    gap(12.px)
+                    alignItems(AlignItems.Center)
                 }
 
             }) {
 
-                Option("todos") {
+                /* FILTRO USUARIO */
 
-                    Text("Todos los usuarios")
+                Select({
+
+                    classes(AppStyles.filterSelect)
+
+                    onChange {
+
+                        selectedUserId = it.target.value
+                    }
+
+                }) {
+
+                    Option("todos") {
+
+                        Text("Todos los usuarios")
+                    }
+
+                    usuarios.forEach { usuario ->
+
+                        Option(usuario.id.toString()) {
+
+                            Text(usuario.username)
+                        }
+                    }
                 }
 
-                usuarios.forEach { usuario ->
 
-                    Option(usuario.id.toString()) {
+                /* FILTRO TIPO */
 
-                        Text(usuario.username)
+                Select({
+
+                    classes(AppStyles.filterSelect)
+
+                    onChange {
+
+                        filtroTipo = it.target.value
                     }
+
+                }) {
+
+                    Option("todos") { Text("Todos") }
+                    Option("entrada") { Text("Entradas") }
+                    Option("salida") { Text("Salidas") }
+                    Option("viaje") { Text("Viajes") }
+                    Option("descanso") { Text("Descansos") }
+                }
+
+
+                /* FILTRO FECHA */
+
+                Input(InputType.Date, attrs = {
+
+                    classes(AppStyles.filterSelect)
+
+                    value(filtroFecha)
+
+                    onInput {
+
+                        filtroFecha = it.value
+                    }
+                })
+
+
+                /* BOTÓN CREAR */
+
+                Button({
+
+                    classes(AppStyles.primaryButton)
+
+                    onClick {
+
+                        showCreateDialog = true
+                    }
+
+                }) {
+
+                    Text("+ Nuevo fichaje")
                 }
             }
         }
+
+
+        /* FILTROS APLICADOS */
+
+        val fichajesFiltrados = fichajes
+            .filter {
+
+                selectedUserId == "todos" ||
+                        it.userId.toString() == selectedUserId
+            }
+            .filter {
+
+                filtroTipo == "todos" ||
+                        it.tipo.contains(filtroTipo)
+            }
+            .filter {
+
+                filtroFecha.isEmpty() ||
+
+                        Date(it.fechaHora)
+                            .toISOString()
+                            .substring(0, 10) == filtroFecha
+            }
 
 
         /* LOADER */
@@ -280,15 +416,10 @@ fun FichajesScreen() {
                         Tr {
 
                             Th { Text("ID") }
-
                             Th { Text("Usuario") }
-
                             Th { Text("Fecha") }
-
                             Th { Text("Hora") }
-
                             Th { Text("Tipo") }
-
                             Th { Text("Acción") }
                         }
                     }
@@ -296,7 +427,7 @@ fun FichajesScreen() {
 
                     Tbody {
 
-                        fichajes.forEach { fichaje ->
+                        fichajesFiltrados.forEach { fichaje ->
 
                             val fecha =
                                 Date(fichaje.fechaHora)
@@ -306,32 +437,26 @@ fun FichajesScreen() {
                                 Date(fichaje.fechaHora)
                                     .toLocaleTimeString()
 
-                            val usuario = fichaje.username
 
                             Tr {
 
                                 Td { Text("${fichaje.id}") }
 
-                                Td { Text(usuario) }
+                                Td { Text(fichaje.username) }
 
                                 Td { Text(fecha) }
 
                                 Td { Text(hora) }
 
+
                                 Td {
-
-                                    val badgeStyle =
-                                        if (fichaje.tipo == "entrada")
-                                            AppStyles.badgeEntrada
-                                        else
-                                            AppStyles.badgeSalida
-
 
                                     Span({
 
                                         classes(
-                                            AppStyles.badgeFichar,
-                                            badgeStyle
+                                            badgeClass(
+                                                fichaje.tipo
+                                            )
                                         )
 
                                     }) {
@@ -380,6 +505,7 @@ fun FichajesScreen() {
         if (showDialog && selectedFichajeId != null) {
 
             ConfirmDialog(
+
                 message = "¿Eliminar fichaje?",
 
                 confirmText = "Eliminar",
@@ -390,7 +516,9 @@ fun FichajesScreen() {
 
                     scope.launch {
 
-                        eliminarFichaje(selectedFichajeId!!)
+                        eliminarFichaje(
+                            selectedFichajeId!!
+                        )
 
                         cargarFichajes()
 

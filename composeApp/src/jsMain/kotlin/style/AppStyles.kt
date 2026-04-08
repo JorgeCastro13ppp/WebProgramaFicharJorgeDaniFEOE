@@ -1004,4 +1004,39 @@ object AppStyles : StyleSheet() {
 
         width(100.percent)
     }
+
+    val badgeGreen by style {
+        backgroundColor(rgb(220, 252, 231))
+        color(rgb(22, 101, 52))
+        padding(4.px, 10.px)
+        borderRadius(999.px)
+    }
+
+    val badgeRed by style {
+        backgroundColor(rgb(254, 226, 226))
+        color(rgb(153, 27, 27))
+        padding(4.px, 10.px)
+        borderRadius(999.px)
+    }
+
+    val badgeBlue by style {
+        backgroundColor(rgb(219, 234, 254))
+        color(rgb(30, 64, 175))
+        padding(4.px, 10.px)
+        borderRadius(999.px)
+    }
+
+    val badgeOrange by style {
+        backgroundColor(rgb(255, 237, 213))
+        color(rgb(154, 52, 18))
+        padding(4.px, 10.px)
+        borderRadius(999.px)
+    }
+
+    val badgeDefault by style {
+        backgroundColor(rgb(229, 231, 235))
+        color(rgb(55, 65, 81))
+        padding(4.px, 10.px)
+        borderRadius(999.px)
+    }
 }

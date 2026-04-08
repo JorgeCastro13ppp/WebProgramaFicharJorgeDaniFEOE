@@ -21,6 +21,11 @@ fun DashboardScreen() {
     var vacacionesPendientes by remember { mutableStateOf(0) }
     var faltasActivas by remember { mutableStateOf(0) }
 
+    var entradasHoy by remember { mutableStateOf(0) }
+    var salidasHoy by remember { mutableStateOf(0) }
+    var viajesHoy by remember { mutableStateOf(0) }
+    var descansosHoy by remember { mutableStateOf(0) }
+
     var loading by remember { mutableStateOf(true) }
 
     val scope = rememberCoroutineScope()
@@ -62,7 +67,7 @@ fun DashboardScreen() {
             // ⏱ FICHAJES HOY
             val fichajesResponse =
                 window.fetch(
-                    "http://127.0.0.1:8080/admin/fichajes",
+                    "http://127.0.0.1:8080/admin/fichajes-hoy",
                     requestInit
                 ).await()
 
@@ -70,15 +75,28 @@ fun DashboardScreen() {
 
                 val text = fichajesResponse.text().await()
 
-                val json = JSON.parse<Array<dynamic>>(text)
+                val json = JSON.parse<dynamic>(text)
 
-                val today = Date().toDateString()
+                fichajesHoy = json.total as Int
+            }
 
-                fichajesHoy =
-                    json.count {
-                        Date(it.fechaHora as Double)
-                            .toDateString() == today
-                    }
+            // 📊 RESUMEN FICHAJES HOY
+            val resumenResponse =
+                window.fetch(
+                    "http://127.0.0.1:8080/admin/dashboard-fichajes-hoy",
+                    requestInit
+                ).await()
+
+            if (resumenResponse.ok) {
+
+                val text = resumenResponse.text().await()
+
+                val json = JSON.parse<dynamic>(text)
+
+                entradasHoy = json.entradas as Int
+                salidasHoy = json.salidas as Int
+                viajesHoy = json.viajes as Int
+                descansosHoy = json.descansos as Int
             }
 
 
@@ -159,6 +177,30 @@ fun DashboardScreen() {
                     "Fichajes hoy",
                     fichajesHoy.toString(),
                     StatAccent.GREEN
+                )
+
+                StatCard(
+                    "Entradas hoy",
+                    entradasHoy.toString(),
+                    StatAccent.GREEN
+                )
+
+                StatCard(
+                    "Salidas hoy",
+                    salidasHoy.toString(),
+                    StatAccent.RED
+                )
+
+                StatCard(
+                    "Viajes hoy",
+                    viajesHoy.toString(),
+                    StatAccent.BLUE
+                )
+
+                StatCard(
+                    "Descansos hoy",
+                    descansosHoy.toString(),
+                    StatAccent.ORANGE
                 )
 
                 StatCard(
