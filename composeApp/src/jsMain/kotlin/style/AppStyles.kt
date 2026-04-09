@@ -1,5 +1,6 @@
 package style
 
+import org.jetbrains.compose.web.ExperimentalComposeWebApi
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.css.keywords.auto
 
@@ -1039,4 +1040,27 @@ object AppStyles : StyleSheet() {
         padding(4.px, 10.px)
         borderRadius(999.px)
     }
+
+    @OptIn(ExperimentalComposeWebApi::class)
+    val fadeIn by keyframes {
+
+        from {
+
+            opacity(0)
+
+            transform {
+                translateY(10.px)
+            }
+        }
+
+        to {
+
+            opacity(1)
+
+            transform {
+                translateY(0.px)
+            }
+        }
+    }
+
 }

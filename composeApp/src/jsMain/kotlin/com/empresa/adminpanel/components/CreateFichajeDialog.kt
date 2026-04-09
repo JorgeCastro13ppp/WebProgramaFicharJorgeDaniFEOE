@@ -19,7 +19,7 @@ fun CreateFichajeDialog(
 
     onClose: () -> Unit,
 
-    onCreated: () -> Unit
+    onCreated: (String, String) -> Unit
 
 ) {
 
@@ -101,7 +101,7 @@ fun CreateFichajeDialog(
 
             if (response.ok) {
 
-                onCreated()
+                onCreated(accion, contexto)
 
                 onClose()
             }

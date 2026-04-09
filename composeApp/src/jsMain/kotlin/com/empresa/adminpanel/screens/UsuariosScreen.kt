@@ -3,7 +3,8 @@ package com.empresa.adminpanel.screens
 import androidx.compose.runtime.*
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.CreateUserDialog
-import com.empresa.adminpanel.components.ToastMessage
+import com.empresa.adminpanel.components.ScreenHeader
+import com.empresa.adminpanel.components.Toast
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -20,14 +21,27 @@ fun UsuariosScreen() {
     var usuarios by remember {
         mutableStateOf<List<Usuario>>(emptyList())
     }
+    var selectedRole by remember {
+        mutableStateOf("todos")
+    }
 
     var showDialog by remember { mutableStateOf(false) }
     var selectedUserId by remember { mutableStateOf<Int?>(null) }
+    var selectedUsername by remember {
+        mutableStateOf<String?>(null)
+    }
     var deleting by remember { mutableStateOf(false) }
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var showToast by remember { mutableStateOf(false) }
 
+    var toastMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var toastType by remember {
+        mutableStateOf("success")
+    }
     val scope = rememberCoroutineScope()
 
     fun cargarUsuarios() {
@@ -83,41 +97,61 @@ fun UsuariosScreen() {
 
     Div {
 
-        /* HEADER + BOTÓN CREAR */
+        ScreenHeader(
 
-        Div({
+            title = "Usuarios registrados",
 
-            style {
-                display(DisplayStyle.Flex)
-                justifyContent(JustifyContent.SpaceBetween)
-                alignItems(AlignItems.Center)
-                marginBottom(20.px)
+            onRefresh = {
+
+                cargarUsuarios()
             }
 
-        }) {
+        ) {
 
-            H2({
-                classes(AppStyles.title)
+            /* FILTRO ROLE */
+
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    selectedRole = it.target.value
+                }
+
             }) {
-                Text("Usuarios registrados")
+
+                Option("todos") {
+
+                    Text("Todos los roles")
+                }
+
+                Option("admin") {
+
+                    Text("Admin")
+                }
+
+                Option("worker") {
+
+                    Text("Empleado")
+                }
             }
+
+
+            /* BOTÓN NUEVO USUARIO */
 
             Button({
 
-                classes(AppStyles.addButton)
+                classes(AppStyles.primaryButton)
 
                 onClick {
+
                     showCreateDialog = true
                 }
 
             }) {
-                Img(
-                    src = "/icons/add.svg",
-                    attrs = {
-                        classes(AppStyles.addIcon)
-                    }
-                )
-                Text("Nuevo usuario")
+
+                Text("+ Nuevo usuario")
             }
         }
 
@@ -156,8 +190,14 @@ fun UsuariosScreen() {
                 }
 
                 Tbody {
+                    val usuariosFiltrados = usuarios.filter {
 
-                    usuarios.forEach { usuario ->
+                        selectedRole == "todos" ||
+
+                                it.role == selectedRole
+                    }
+
+                    usuariosFiltrados.forEach { usuario ->
 
                         Tr({
                             classes(AppStyles.tableRow)
@@ -205,6 +245,7 @@ fun UsuariosScreen() {
 
                                     onClick {
                                         selectedUserId = usuario.id
+                                        selectedUsername = usuario.username
                                         showDialog = true
                                     }
 
@@ -243,7 +284,8 @@ fun UsuariosScreen() {
         if (showDialog && selectedUserId != null) {
 
             ConfirmDialog(
-                message = "¿Seguro que quieres eliminar este usuario?",
+                message = "¿Eliminar usuario \"$selectedUsername\"?"
+                ,
 
                 confirmText = "Eliminar",
 
@@ -256,6 +298,13 @@ fun UsuariosScreen() {
                     scope.launch {
 
                         eliminarUsuario(selectedUserId!!)
+
+                        toastMessage =
+                            "Usuario \"$selectedUsername\" eliminado correctamente"
+
+                        toastType = "error"
+
+                        cargarUsuarios()
 
                         cargarUsuarios()
 
@@ -278,26 +327,35 @@ fun UsuariosScreen() {
             CreateUserDialog(
 
                 onClose = {
+
                     showCreateDialog = false
                 },
 
-                onCreated = {
+                onCreated = { username ->
 
                     cargarUsuarios()
 
-                    showToast = true
+                    toastMessage =
+                        "Usuario \"$username\" creado correctamente"
+
+                    toastType = "success"
                 }
             )
         }
     }
-    if (showToast) {
 
-        ToastMessage(
 
-            message = "Usuario creado con éxito",
+    toastMessage?.let {
+
+        Toast(
+
+            message = it,
+
+            type = toastType,
 
             onClose = {
-                showToast = false
+
+                toastMessage = null
             }
         )
     }

@@ -2,6 +2,8 @@ package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
 import com.empresa.adminpanel.components.ConfirmDialog
+import com.empresa.adminpanel.components.CreateDocumentoDialog
+import com.empresa.adminpanel.components.ScreenHeader
 import com.empresa.adminpanel.models.Documento
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
@@ -50,6 +52,10 @@ fun DocumentosScreen() {
     }
 
     var showDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showUploadDialog by remember {
         mutableStateOf(false)
     }
 
@@ -162,6 +168,24 @@ fun DocumentosScreen() {
         }
     }
 
+    if (showUploadDialog) {
+
+        CreateDocumentoDialog(
+
+            usuarios = usuarios,
+
+            onClose = {
+
+                showUploadDialog = false
+            },
+
+            onUploaded = {
+
+                cargarDocumentos()
+            }
+        )
+    }
+
     LaunchedEffect(Unit) {
         cargarUsuarios()
 
@@ -170,151 +194,103 @@ fun DocumentosScreen() {
 
     Div {
 
-        /* HEADER */
+        ScreenHeader(
 
-        Div({
+            title = "Documentos",
 
-            style {
+            onRefresh = {
 
-                display(DisplayStyle.Flex)
-
-                justifyContent(JustifyContent.SpaceBetween)
-
-                alignItems(AlignItems.Center)
-
-                marginBottom(24.px)
+                cargarDocumentos()
             }
 
-        }) {
+        ) {
 
-            /* IZQUIERDA: título + botón recargar */
+            /* FILTRO USUARIO */
 
-            Div({
+            Select({
 
-                style {
+                classes(AppStyles.filterSelect)
 
-                    display(DisplayStyle.Flex)
+                onChange {
 
-                    alignItems(AlignItems.Center)
+                    selectedUserId = it.target.value
 
-                    gap(12.px)
+                    cargarDocumentos()
                 }
 
             }) {
 
-                H2({
+                Option("todos") {
 
-                    classes(AppStyles.title)
-
-                }) {
-
-                    Text("Documentos")
+                    Text("Todos los usuarios")
                 }
 
+                usuarios.forEach { usuario ->
 
-                Button({
+                    Option(usuario.id.toString()) {
 
-                    classes(AppStyles.secondaryButton)
-
-                    onClick {
-
-                        cargarDocumentos()
+                        Text(usuario.username)
                     }
-
-                }) {
-
-                    Img(
-                        src = "/icons/refresh.svg",
-                        attrs = {
-                            classes(AppStyles.buttonIcon)
-                        }
-                    )
-
-                    Text("Recargar")
                 }
             }
 
 
-            /* DERECHA: filtros */
+            /* FILTRO TIPO DOCUMENTO */
 
-            Div({
+            Select({
 
-                style {
+                classes(AppStyles.filterSelect)
 
-                    display(DisplayStyle.Flex)
+                onChange {
 
-                    gap(12.px)
+                    selectedTipo = it.target.value
+
+                    cargarDocumentos()
                 }
 
             }) {
 
-                /* FILTRO USUARIO */
+                Option("todos") {
 
-                Select({
-                    classes(AppStyles.filterSelect)
-                    onChange {
-
-                        selectedUserId = it.target.value
-
-                        cargarDocumentos()
-                    }
-
-                }) {
-
-                    Option("todos") {
-
-                        Text("Todos los usuarios")
-                    }
-
-                    usuarios.forEach { usuario ->
-
-                        Option(usuario.id.toString()) {
-
-                            Text(usuario.username)
-                        }
-                    }
+                    Text("Todos los tipos")
                 }
 
+                Option("nomina") {
 
-                /* FILTRO TIPO DOCUMENTO */
-
-                Select({
-
-                    classes(AppStyles.filterSelect)
-                    onChange {
-
-                        selectedTipo = it.target.value
-
-                        cargarDocumentos()
-                    }
-
-                }) {
-
-                    Option("todos") {
-
-                        Text("Todos los tipos")
-                    }
-
-                    Option("nomina") {
-
-                        Text("Nómina")
-                    }
-
-                    Option("reconocimiento") {
-
-                        Text("Reconocimiento")
-                    }
-
-                    Option("formacion") {
-
-                        Text("Formación")
-                    }
-
-                    Option("epis") {
-
-                        Text("EPIs")
-                    }
+                    Text("Nómina")
                 }
+
+                Option("reconocimiento") {
+
+                    Text("Reconocimiento")
+                }
+
+                Option("formacion") {
+
+                    Text("Formación")
+                }
+
+                Option("epis") {
+
+                    Text("EPIs")
+                }
+            }
+
+
+            /* BOTÓN SUBIR DOCUMENTO (nuevo) */
+
+            Button({
+
+                classes(AppStyles.primaryButton)
+
+                onClick {
+
+                    showUploadDialog = true
+                }
+
+            }) {
+
+                Text("+ Subir documento")
             }
         }
 

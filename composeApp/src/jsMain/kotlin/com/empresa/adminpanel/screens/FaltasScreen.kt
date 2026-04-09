@@ -13,6 +13,7 @@ import style.AppStyles
 
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.CreateFaltaDialog
+import com.empresa.adminpanel.components.ScreenHeader
 import org.jetbrains.compose.web.css.*
 
 
@@ -207,16 +208,7 @@ fun FaltasScreen() {
     }
 
 
-    val faltasFiltradas = faltas.filter {
 
-        (selectedUserId == "todos"
-                || it.userId.toString() == selectedUserId)
-
-                &&
-
-                (selectedTipo == "todos"
-                        || it.tipo == selectedTipo)
-    }
 
     if (showCreateDialog) {
 
@@ -251,110 +243,18 @@ fun FaltasScreen() {
 
     Div {
 
-        /* HEADER */
+        ScreenHeader(
 
-        Div({
+            title = "Gestión de faltas",
 
-            style {
+            onRefresh = {
 
-                display(DisplayStyle.Flex)
-
-                justifyContent(JustifyContent.SpaceBetween)
-
-                alignItems(AlignItems.Center)
-
-                marginBottom(28.px)
+                cargarFaltas()
             }
 
-        }) {
+        ) {
 
-            /* IZQUIERDA: título + recargar */
-
-            Div({
-
-                style {
-
-                    display(DisplayStyle.Flex)
-
-                    alignItems(AlignItems.Center)
-
-                    gap(12.px)
-                }
-
-            }) {
-
-                H2({
-
-                    classes(AppStyles.title)
-
-                }) {
-
-                    Text("Gestión de faltas")
-                }
-
-
-                Button({
-
-                    classes(AppStyles.secondaryButton)
-
-                    onClick {
-
-                        cargarFaltas()
-                    }
-
-                }) {
-
-                    Img(
-                        src = "/icons/refresh.svg",
-                        attrs = {
-                            classes(AppStyles.buttonIcon)
-                        }
-                    )
-
-                    Text("Recargar")
-                }
-            }
-
-
-            /* DERECHA: nueva falta */
-
-            Button({
-
-                classes(AppStyles.primaryButton)
-
-                onClick {
-
-                    showCreateDialog = true
-                }
-
-            }) {
-
-                Img(
-                    src = "/icons/add.svg",
-                    attrs = {
-                        classes(AppStyles.buttonIcon)
-                    }
-                )
-
-                Text("Nueva falta")
-            }
-        }
-
-
-        /* FILTROS */
-
-        Div({
-
-            style {
-
-                display(DisplayStyle.Flex)
-
-                gap(16.px)
-
-                marginBottom(20.px)
-            }
-
-        }) {
+            /* FILTRO USUARIO */
 
             Select({
 
@@ -382,31 +282,55 @@ fun FaltasScreen() {
             }
 
 
+            /* FILTRO TIPO */
+
             Select({
 
                 classes(AppStyles.filterSelect)
 
                 onChange {
+
                     selectedTipo = it.target.value
                 }
 
             }) {
 
                 Option("todos") {
+
                     Text("Todos los tipos")
                 }
 
                 Option("retraso") {
+
                     Text("Retraso")
                 }
 
                 Option("justificada") {
+
                     Text("Justificada")
                 }
 
                 Option("injustificada") {
+
                     Text("Injustificada")
                 }
+            }
+
+
+            /* BOTÓN NUEVA FALTA */
+
+            Button({
+
+                classes(AppStyles.primaryButton)
+
+                onClick {
+
+                    showCreateDialog = true
+                }
+
+            }) {
+
+                Text("+ Nueva falta")
             }
         }
 
@@ -467,6 +391,17 @@ fun FaltasScreen() {
 
 
                     Tbody {
+
+                        val faltasFiltradas = faltas.filter {
+
+                            (selectedUserId == "todos"
+                                    || it.userId.toString() == selectedUserId)
+
+                                    &&
+
+                                    (selectedTipo == "todos"
+                                            || it.tipo == selectedTipo)
+                        }
 
                         faltasFiltradas.forEach { falta ->
 

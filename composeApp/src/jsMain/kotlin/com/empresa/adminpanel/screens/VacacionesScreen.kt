@@ -2,6 +2,9 @@ package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
 import com.empresa.adminpanel.components.ConfirmDialog
+import com.empresa.adminpanel.components.CreateVacacionDialog
+import com.empresa.adminpanel.components.ScreenHeader
+import com.empresa.adminpanel.models.Usuario
 import com.empresa.adminpanel.models.Vacacion
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -24,14 +27,40 @@ fun VacacionesScreen() {
     var vacaciones by remember {
         mutableStateOf<List<Vacacion>>(emptyList())
     }
+    var usuarios by remember {
+        mutableStateOf<List<Usuario>>(emptyList())
+    }
+
+    var selectedUserId by remember {
+        mutableStateOf("todos")
+    }
 
     var selectedVacacionId by remember { mutableStateOf<Int?>(null) }
 
     var nuevoEstado by remember { mutableStateOf("") }
 
+    var selectedEstado by remember {
+        mutableStateOf("todos")
+    }
+
+    var showCreateDialog by remember {
+        mutableStateOf(false)
+    }
+
     var showDialog by remember { mutableStateOf(false) }
     var loading by remember {
         mutableStateOf(true)
+    }
+
+    val vacacionesFiltradas = vacaciones.filter {
+
+        (selectedEstado == "todos" ||
+                it.estado == selectedEstado)
+
+                &&
+
+                (selectedUserId == "todos" ||
+                        it.userId.toString() == selectedUserId)
     }
 
     val scope = rememberCoroutineScope()
@@ -74,6 +103,38 @@ fun VacacionesScreen() {
         }
     }
 
+    fun cargarUsuarios() {
+
+        scope.launch {
+
+            val token = window.localStorage.getItem("token")
+                ?: return@launch
+
+            val headers = Headers()
+
+            headers.append(
+                "Authorization",
+                "Bearer $token"
+            )
+
+            val requestInit = js("{}")
+
+            requestInit.method = "GET"
+            requestInit.headers = headers
+
+            val response = window.fetch(
+                "http://127.0.0.1:8080/admin/usuarios",
+                requestInit
+            ).await()
+
+            if (response.ok) {
+
+                val text = response.text().await()
+
+                usuarios = Json.decodeFromString(text)
+            }
+        }
+    }
     fun actualizarEstado(
         id: Int,
         estado: String
@@ -102,58 +163,119 @@ fun VacacionesScreen() {
         }
     }
 
+    if (showCreateDialog) {
+
+        CreateVacacionDialog(
+
+            usuarios = usuarios,
+
+            onClose = {
+
+                showCreateDialog = false
+            },
+
+            onCreated = {
+
+                cargarVacaciones()
+            }
+        )
+    }
+
     LaunchedEffect(Unit) {
         cargarVacaciones()
+        cargarUsuarios()
     }
 
     Div {
 
-        /* HEADER */
+        ScreenHeader(
 
-        Div({
+            title = "Gestión de vacaciones",
 
-            style {
+            onRefresh = {
 
-                display(DisplayStyle.Flex)
-
-                alignItems(AlignItems.Center)
-
-                gap(12.px)
-
-                marginBottom(24.px)
+                cargarVacaciones()
             }
 
-        }) {
+        ) {
 
-            H2({
+            /* FILTRO USUARIO */
 
-                classes(AppStyles.title)
+            Select({
 
-            }) {
+                classes(AppStyles.filterSelect)
 
-                Text("Gestión de vacaciones")
-            }
+                onChange {
 
-
-            Button({
-
-                classes(AppStyles.secondaryButton)
-
-                onClick {
-
-                    cargarVacaciones()
+                    selectedUserId = it.target.value
                 }
 
             }) {
 
-                Img(
-                    src = "/icons/refresh.svg",
-                    attrs = {
-                        classes(AppStyles.buttonIcon)
-                    }
-                )
+                Option("todos") {
 
-                Text("Recargar")
+                    Text("Todos los usuarios")
+                }
+
+                usuarios.forEach { usuario ->
+
+                    Option(usuario.id.toString()) {
+
+                        Text(usuario.username)
+                    }
+                }
+            }
+
+
+            /* FILTRO ESTADO */
+
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    selectedEstado = it.target.value
+                }
+
+            }) {
+
+                Option("todos") {
+
+                    Text("Todos los estados")
+                }
+
+                Option("pendiente") {
+
+                    Text("Pendientes")
+                }
+
+                Option("aprobado") {
+
+                    Text("Aprobadas")
+                }
+
+                Option("rechazado") {
+
+                    Text("Rechazadas")
+                }
+            }
+
+
+            /* BOTÓN CREAR VACACIÓN */
+
+            Button({
+
+                classes(AppStyles.primaryButton)
+
+                onClick {
+
+                    showCreateDialog = true
+                }
+
+            }) {
+
+                Text("+ Nueva vacación")
             }
         }
 
@@ -210,7 +332,7 @@ fun VacacionesScreen() {
 
                     Tbody {
 
-                        vacaciones.forEach { vacacion ->
+                        vacacionesFiltradas.forEach { vacacion ->
 
                             val rowStyle = when (vacacion.estado) {
 

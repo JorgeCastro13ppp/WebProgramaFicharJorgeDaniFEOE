@@ -3,6 +3,8 @@ package com.empresa.adminpanel.screens
 import androidx.compose.runtime.*
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.CreateFichajeDialog
+import com.empresa.adminpanel.components.ScreenHeader
+import com.empresa.adminpanel.components.Toast
 import com.empresa.adminpanel.models.Fichaje
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
@@ -39,6 +41,17 @@ fun FichajesScreen() {
 
     var filtroFecha by remember { mutableStateOf("") }
 
+    var toastMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var toastType by remember {
+        mutableStateOf("success")
+    }
+
+    var selectedTipoFichaje by remember {
+        mutableStateOf<String?>(null)
+    }
 
     val scope = rememberCoroutineScope()
 
@@ -89,8 +102,7 @@ fun FichajesScreen() {
 
                 val text = response.text().await()
 
-                usuarios =
-                    Json.decodeFromString(text)
+                usuarios = Json.decodeFromString(text)
             }
         }
     }
@@ -170,9 +182,14 @@ fun FichajesScreen() {
                 showCreateDialog = false
             },
 
-            onCreated = {
+            onCreated = { accion, contexto ->
 
                 cargarFichajes()
+
+                toastMessage =
+                    "Fichaje registrado: $accion en $contexto"
+
+                toastType = "success"
             }
         )
     }
@@ -196,158 +213,95 @@ fun FichajesScreen() {
 
     Div {
 
-        /* HEADER */
+        ScreenHeader(
 
-        Div({
+            title = "Fichajes",
 
-            style {
+            onRefresh = {
 
-                display(DisplayStyle.Flex)
-                justifyContent(JustifyContent.SpaceBetween)
-                alignItems(AlignItems.Center)
-                marginBottom(28.px)
+                cargarFichajes()
             }
 
-        }) {
+        ) {
 
-            /* IZQUIERDA: título + recargar */
+            /* FILTRO USUARIO */
 
-            Div({
+            Select({
 
-                style {
+                classes(AppStyles.filterSelect)
 
-                    display(DisplayStyle.Flex)
-                    alignItems(AlignItems.Center)
-                    gap(16.px)
+                onChange {
+
+                    selectedUserId = it.target.value
                 }
 
             }) {
 
-                H2({
+                Option("todos") {
 
-                    classes(AppStyles.title)
-
-                }) {
-
-                    Text("Fichajes")
+                    Text("Todos los usuarios")
                 }
 
+                usuarios.forEach { usuario ->
 
-                Button({
+                    Option(usuario.id.toString()) {
 
-                    classes(AppStyles.secondaryButton)
-
-                    onClick {
-
-                        cargarFichajes()
+                        Text(usuario.username)
                     }
-
-                }) {
-
-                    Img(
-                        src = "/icons/refresh.svg",
-                        attrs = {
-                            classes(AppStyles.buttonIcon)
-                        }
-                    )
-
-                    Text("Recargar")
                 }
             }
 
 
-            /* DERECHA: filtros + botón crear */
+            /* FILTRO TIPO */
 
-            Div({
+            Select({
 
-                style {
+                classes(AppStyles.filterSelect)
 
-                    display(DisplayStyle.Flex)
-                    gap(12.px)
-                    alignItems(AlignItems.Center)
+                onChange {
+
+                    filtroTipo = it.target.value
                 }
 
             }) {
 
-                /* FILTRO USUARIO */
+                Option("todos") { Text("Todos") }
+                Option("entrada") { Text("Entradas") }
+                Option("salida") { Text("Salidas") }
+                Option("viaje") { Text("Viajes") }
+                Option("descanso") { Text("Descansos") }
+            }
 
-                Select({
 
-                    classes(AppStyles.filterSelect)
+            /* FILTRO FECHA */
 
-                    onChange {
+            Input(InputType.Date, attrs = {
 
-                        selectedUserId = it.target.value
-                    }
+                classes(AppStyles.filterSelect)
 
-                }) {
+                value(filtroFecha)
 
-                    Option("todos") {
+                onInput {
 
-                        Text("Todos los usuarios")
-                    }
+                    filtroFecha = it.value
+                }
+            })
 
-                    usuarios.forEach { usuario ->
 
-                        Option(usuario.id.toString()) {
+            /* BOTÓN CREAR */
 
-                            Text(usuario.username)
-                        }
-                    }
+            Button({
+
+                classes(AppStyles.primaryButton)
+
+                onClick {
+
+                    showCreateDialog = true
                 }
 
+            }) {
 
-                /* FILTRO TIPO */
-
-                Select({
-
-                    classes(AppStyles.filterSelect)
-
-                    onChange {
-
-                        filtroTipo = it.target.value
-                    }
-
-                }) {
-
-                    Option("todos") { Text("Todos") }
-                    Option("entrada") { Text("Entradas") }
-                    Option("salida") { Text("Salidas") }
-                    Option("viaje") { Text("Viajes") }
-                    Option("descanso") { Text("Descansos") }
-                }
-
-
-                /* FILTRO FECHA */
-
-                Input(InputType.Date, attrs = {
-
-                    classes(AppStyles.filterSelect)
-
-                    value(filtroFecha)
-
-                    onInput {
-
-                        filtroFecha = it.value
-                    }
-                })
-
-
-                /* BOTÓN CREAR */
-
-                Button({
-
-                    classes(AppStyles.primaryButton)
-
-                    onClick {
-
-                        showCreateDialog = true
-                    }
-
-                }) {
-
-                    Text("+ Nuevo fichaje")
-                }
+                Text("+ Nuevo fichaje")
             }
         }
 
@@ -474,8 +428,8 @@ fun FichajesScreen() {
 
                                         onClick {
 
-                                            selectedFichajeId =
-                                                fichaje.id
+                                            selectedFichajeId = fichaje.id
+                                            selectedTipoFichaje = fichaje.tipo
 
                                             showDialog = true
                                         }
@@ -516,9 +470,12 @@ fun FichajesScreen() {
 
                     scope.launch {
 
-                        eliminarFichaje(
-                            selectedFichajeId!!
-                        )
+                        eliminarFichaje(selectedFichajeId!!)
+
+                        toastMessage =
+                            "Fichaje eliminado: $selectedTipoFichaje"
+
+                        toastType = "error"
 
                         cargarFichajes()
 
@@ -533,4 +490,20 @@ fun FichajesScreen() {
             )
         }
     }
+
+    toastMessage?.let {
+
+        Toast(
+
+            message = it,
+
+            type = toastType,
+
+            onClose = {
+
+                toastMessage = null
+            }
+        )
+    }
+
 }

@@ -14,7 +14,7 @@ import style.AppStyles
 @Composable
 fun CreateUserDialog(
     onClose: () -> Unit,
-    onCreated: () -> Unit
+    onCreated: (String) -> Unit
 ) {
 
     var username by remember { mutableStateOf("") }
@@ -59,7 +59,7 @@ fun CreateUserDialog(
 
             if (response.ok) {
 
-                onCreated()
+                onCreated(username)
                 onClose()
             }
         }
