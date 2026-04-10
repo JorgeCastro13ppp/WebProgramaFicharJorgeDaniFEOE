@@ -716,6 +716,7 @@ object AppStyles : StyleSheet() {
         }
         """
         )
+
     }
 
     val badgeFichar by style {

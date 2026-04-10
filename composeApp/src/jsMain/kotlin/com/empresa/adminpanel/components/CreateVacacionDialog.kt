@@ -14,10 +14,10 @@ import style.AppStyles
 fun CreateVacacionDialog(
 
     usuarios: List<Usuario>,
-
+    onError: (String) -> Unit,
     onClose: () -> Unit,
 
-    onCreated: () -> Unit
+    onCreated: (String) -> Unit
 
 ) {
 
@@ -81,7 +81,7 @@ fun CreateVacacionDialog(
 
             val response = window.fetch(
 
-                "http://127.0.0.1:8080/vacaciones/$selectedUserId",
+                "http://127.0.0.1:8080/admin/vacaciones/$selectedUserId",
 
                 requestInit
 
@@ -93,10 +93,24 @@ fun CreateVacacionDialog(
 
             if (response.ok) {
 
-                onCreated()
+                val usuarioSeleccionado =
+                    usuarios.find {
+                        it.id == selectedUserId.toInt()
+                    }
+
+                onCreated(usuarioSeleccionado?.username ?: "usuario")
 
                 onClose()
-            }
+
+            } else {
+
+            val json =
+                JSON.parse<dynamic>(
+                    response.text().await()
+                )
+
+            onError(json.message as String)
+        }
         }
     }
 

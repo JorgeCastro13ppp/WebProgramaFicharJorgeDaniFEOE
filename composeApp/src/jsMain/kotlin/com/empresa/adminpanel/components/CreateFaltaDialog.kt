@@ -2,10 +2,14 @@ package com.empresa.adminpanel.components
 
 import androidx.compose.runtime.*
 import com.empresa.adminpanel.models.Usuario
+import kotlinx.browser.window
+import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
+import org.w3c.fetch.Headers
 import style.AppStyles
 
 @Composable
@@ -19,6 +23,7 @@ fun CreateFaltaDialog(
         String,
         String
     ) -> Unit,
+    onError: (String) -> Unit,
 
     onCancel: () -> Unit
 
@@ -39,6 +44,8 @@ fun CreateFaltaDialog(
     var descripcion by remember {
         mutableStateOf("")
     }
+
+    val scope = rememberCoroutineScope()
 
 
     Div({
@@ -167,18 +174,57 @@ fun CreateFaltaDialog(
 
                     onClick {
 
-                        if (selectedUserId.isNotEmpty()) {
+                        if (selectedUserId.isEmpty()) return@onClick
 
-                            onConfirm(
+                        scope.launch {
 
-                                selectedUserId.toInt(),
+                            val token =
+                                window.localStorage.getItem("token")
+                                    ?: return@launch
 
-                                fecha,
+                            val headers = Headers()
 
-                                tipo,
+                            headers.append("Authorization", "Bearer $token")
+                            headers.append("Content-Type", "application/json")
 
-                                descripcion
-                            )
+                            val bodyObject = js("{}")
+
+                            bodyObject["fecha"] = fecha
+                            bodyObject["tipo"] = tipo
+                            bodyObject["descripcion"] = descripcion
+
+                            val requestInit = js("{}")
+
+                            requestInit.method = "POST"
+                            requestInit.headers = headers
+                            requestInit.body = JSON.stringify(bodyObject)
+
+                            val response = window.fetch(
+
+                                "http://127.0.0.1:8080/faltas/$selectedUserId",
+
+                                requestInit
+
+                            ).await()
+
+                            if (response.ok) {
+
+                                onConfirm(
+                                    selectedUserId.toInt(),
+                                    fecha,
+                                    tipo,
+                                    descripcion
+                                )
+
+                            } else {
+
+                                val json =
+                                    JSON.parse<dynamic>(
+                                        response.text().await()
+                                    )
+
+                                onError(json.message as String)
+                            }
                         }
                     }
 

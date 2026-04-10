@@ -1,6 +1,7 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.components.*
 import com.empresa.adminpanel.models.Falta
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
@@ -8,54 +9,46 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.web.dom.*
+import org.jetbrains.compose.web.css.*
 import org.w3c.fetch.Headers
 import style.AppStyles
-
-import com.empresa.adminpanel.components.ConfirmDialog
-import com.empresa.adminpanel.components.CreateFaltaDialog
-import com.empresa.adminpanel.components.ScreenHeader
-import org.jetbrains.compose.web.css.*
 
 
 @Composable
 fun FaltasScreen() {
 
-    var faltas by remember {
-        mutableStateOf<List<Falta>>(emptyList())
-    }
+    var faltas by remember { mutableStateOf<List<Falta>>(emptyList()) }
 
-    var usuarios by remember {
-        mutableStateOf<List<Usuario>>(emptyList())
-    }
+    var usuarios by remember { mutableStateOf<List<Usuario>>(emptyList()) }
 
-    var selectedUserId: String? by remember {
-        mutableStateOf("todos")
-    }
+    var selectedUserId by remember { mutableStateOf("todos") }
 
-    var selectedTipo: String? by remember {
-        mutableStateOf("todos")
-    }
+    var selectedTipo by remember { mutableStateOf("todos") }
 
-    var selectedFaltaId by remember {
-        mutableStateOf<Int?>(null)
-    }
+    var selectedFaltaId by remember { mutableStateOf<Int?>(null) }
 
-    var showDialog by remember {
-        mutableStateOf(false)
-    }
+    var showDialog by remember { mutableStateOf(false) }
 
-    var loading by remember {
-        mutableStateOf(true)
-    }
+    var showCreateDialog by remember { mutableStateOf(false) }
 
-    var showCreateDialog by remember {
-        mutableStateOf(false)
-    }
+    var loading by remember { mutableStateOf(true) }
 
+    var toastMessage by remember { mutableStateOf<String?>(null) }
 
+    var toastType by remember { mutableStateOf("success") }
+
+    var selectedUsername by remember { mutableStateOf<String?>(null) }
+
+    var selectedTipoFalta by remember { mutableStateOf<String?>(null) }
+
+    var selectedFechaFalta by remember { mutableStateOf<String?>(null) }
 
     val scope = rememberCoroutineScope()
 
+
+    /* =========================
+       CARGAR FALTAS
+       ========================= */
 
     fun cargarFaltas() {
 
@@ -63,25 +56,24 @@ fun FaltasScreen() {
 
             loading = true
 
-            val token = window.localStorage.getItem("token")
-                ?: return@launch
+            val token =
+                window.localStorage.getItem("token")
+                    ?: return@launch
 
             val headers = Headers()
 
-            headers.append(
-                "Authorization",
-                "Bearer $token"
-            )
+            headers.append("Authorization", "Bearer $token")
 
             val requestInit = js("{}")
 
             requestInit.method = "GET"
             requestInit.headers = headers
 
-            val response = window.fetch(
-                "http://127.0.0.1:8080/faltas",
-                requestInit
-            ).await()
+            val response =
+                window.fetch(
+                    "http://127.0.0.1:8080/faltas",
+                    requestInit
+                ).await()
 
             if (response.ok) {
 
@@ -95,12 +87,18 @@ fun FaltasScreen() {
         }
     }
 
+
+    /* =========================
+       CARGAR USUARIOS
+       ========================= */
+
     fun cargarUsuarios() {
 
         scope.launch {
 
-            val token = window.localStorage.getItem("token")
-                ?: return@launch
+            val token =
+                window.localStorage.getItem("token")
+                    ?: return@launch
 
             val headers = Headers()
 
@@ -111,10 +109,11 @@ fun FaltasScreen() {
             requestInit.method = "GET"
             requestInit.headers = headers
 
-            val response = window.fetch(
-                "http://127.0.0.1:8080/admin/usuarios",
-                requestInit
-            ).await()
+            val response =
+                window.fetch(
+                    "http://127.0.0.1:8080/admin/usuarios",
+                    requestInit
+                ).await()
 
             if (response.ok) {
 
@@ -126,19 +125,22 @@ fun FaltasScreen() {
         }
     }
 
+
+    /* =========================
+       ELIMINAR FALTA
+       ========================= */
+
     fun eliminarFalta(id: Int) {
 
         scope.launch {
 
-            val token = window.localStorage.getItem("token")
-                ?: return@launch
+            val token =
+                window.localStorage.getItem("token")
+                    ?: return@launch
 
             val headers = Headers()
 
-            headers.append(
-                "Authorization",
-                "Bearer $token"
-            )
+            headers.append("Authorization", "Bearer $token")
 
             val requestInit = js("{}")
 
@@ -154,61 +156,21 @@ fun FaltasScreen() {
         }
     }
 
-    fun registrarFalta(
-        userId: Int,
-        fecha: String,
-        tipo: String,
-        descripcion: String
-    ) {
 
-        scope.launch {
-
-            val token = window.localStorage.getItem("token")
-                ?: return@launch
-
-            val headers = Headers()
-
-            headers.append(
-                "Authorization",
-                "Bearer $token"
-            )
-
-            headers.append(
-                "Content-Type",
-                "application/json"
-            )
-
-            val bodyObject = js("{}")
-
-            bodyObject.fecha = fecha
-            bodyObject.tipo = tipo
-            bodyObject.descripcion = descripcion
-
-            val body = JSON.stringify(bodyObject)
-
-            val requestInit = js("{}")
-
-            requestInit.method = "POST"
-            requestInit.headers = headers
-            requestInit.body = body
-
-            window.fetch(
-                "http://127.0.0.1:8080/faltas/$userId",
-                requestInit
-            ).await()
-
-            cargarFaltas()
-        }
-    }
-
+    /* =========================
+       INIT LOAD
+       ========================= */
 
     LaunchedEffect(Unit) {
+
         cargarFaltas()
         cargarUsuarios()
     }
 
 
-
+    /* =========================
+       CREATE DIALOG
+       ========================= */
 
     if (showCreateDialog) {
 
@@ -216,21 +178,29 @@ fun FaltasScreen() {
 
             usuarios = usuarios,
 
-            onConfirm = {
+            onConfirm = { userId, fecha, tipo, _ ->
 
-                    userId,
-                    fecha,
-                    tipo,
-                    descripcion ->
+                val username =
+                    usuarios.find { it.id == userId }
+                        ?.username ?: "usuario"
 
-                registrarFalta(
-                    userId,
-                    fecha,
-                    tipo,
-                    descripcion
-                )
+                toastMessage =
+                    "Falta registrada: $tipo · $username"
+
+                toastType = "success"
 
                 showCreateDialog = false
+
+                cargarFaltas()
+            },
+
+            onError = { mensaje ->
+
+                showCreateDialog = false
+
+                toastMessage = mensaje
+
+                toastType = "warning"
             },
 
             onCancel = {
@@ -240,6 +210,10 @@ fun FaltasScreen() {
         )
     }
 
+
+    /* =========================
+       UI
+       ========================= */
 
     Div {
 
@@ -253,8 +227,6 @@ fun FaltasScreen() {
             }
 
         ) {
-
-            /* FILTRO USUARIO */
 
             Select({
 
@@ -272,17 +244,15 @@ fun FaltasScreen() {
                     Text("Todos los usuarios")
                 }
 
-                usuarios.forEach { usuario ->
+                usuarios.forEach {
 
-                    Option(usuario.id.toString()) {
+                    Option(it.id.toString()) {
 
-                        Text(usuario.username)
+                        Text(it.username)
                     }
                 }
             }
 
-
-            /* FILTRO TIPO */
 
             Select({
 
@@ -295,29 +265,15 @@ fun FaltasScreen() {
 
             }) {
 
-                Option("todos") {
+                Option("todos") { Text("Todos los tipos") }
 
-                    Text("Todos los tipos")
-                }
+                Option("retraso") { Text("Retraso") }
 
-                Option("retraso") {
+                Option("justificada") { Text("Justificada") }
 
-                    Text("Retraso")
-                }
-
-                Option("justificada") {
-
-                    Text("Justificada")
-                }
-
-                Option("injustificada") {
-
-                    Text("Injustificada")
-                }
+                Option("injustificada") { Text("Injustificada") }
             }
 
-
-            /* BOTÓN NUEVA FALTA */
 
             Button({
 
@@ -334,8 +290,6 @@ fun FaltasScreen() {
             }
         }
 
-
-        /* LOADER */
 
         if (loading) {
 
@@ -354,7 +308,17 @@ fun FaltasScreen() {
 
         } else {
 
-            /* TABLA */
+            val faltasFiltradas = faltas.filter {
+
+                (selectedUserId == "todos"
+                        || it.userId.toString() == selectedUserId)
+
+                        &&
+
+                        (selectedTipo == "todos"
+                                || it.tipo == selectedTipo)
+            }
+
 
             Div({
 
@@ -392,29 +356,15 @@ fun FaltasScreen() {
 
                     Tbody {
 
-                        val faltasFiltradas = faltas.filter {
-
-                            (selectedUserId == "todos"
-                                    || it.userId.toString() == selectedUserId)
-
-                                    &&
-
-                                    (selectedTipo == "todos"
-                                            || it.tipo == selectedTipo)
-                        }
-
                         faltasFiltradas.forEach { falta ->
 
                             val badgeStyle = when (falta.tipo) {
 
-                                "retraso" ->
-                                    AppStyles.badgeWarning
+                                "retraso" -> AppStyles.badgeWarning
 
-                                "injustificada" ->
-                                    AppStyles.badgeDanger
+                                "injustificada" -> AppStyles.badgeDanger
 
-                                else ->
-                                    AppStyles.badgeInfo
+                                else -> AppStyles.badgeInfo
                             }
 
                             Tr {
@@ -453,8 +403,16 @@ fun FaltasScreen() {
 
                                         onClick {
 
-                                            selectedFaltaId =
-                                                falta.id
+                                            selectedFaltaId = falta.id
+
+                                            selectedUsername =
+                                                falta.username
+
+                                            selectedTipoFalta =
+                                                falta.tipo
+
+                                            selectedFechaFalta =
+                                                falta.fecha
 
                                             showDialog = true
                                         }
@@ -479,12 +437,21 @@ fun FaltasScreen() {
         }
 
 
-        /* DIALOGO CONFIRMACION */
+        /* =========================
+           DELETE CONFIRM DIALOG
+           ========================= */
 
         if (showDialog && selectedFaltaId != null) {
 
             ConfirmDialog(
-                message = "¿Eliminar falta?",
+
+                message = """
+¿Eliminar falta?
+
+Usuario: $selectedUsername
+Tipo: $selectedTipoFalta
+Fecha: $selectedFechaFalta
+""".trimIndent(),
 
                 confirmText = "Eliminar",
 
@@ -492,14 +459,14 @@ fun FaltasScreen() {
 
                 onConfirm = {
 
-                    scope.launch {
+                    eliminarFalta(selectedFaltaId!!)
 
-                        eliminarFalta(selectedFaltaId!!)
+                    toastMessage =
+                        "Falta eliminada: $selectedTipoFalta · $selectedUsername"
 
-                        cargarFaltas()
+                    toastType = "error"
 
-                        showDialog = false
-                    }
+                    showDialog = false
                 },
 
                 onCancel = {
@@ -508,5 +475,25 @@ fun FaltasScreen() {
                 }
             )
         }
+    }
+
+
+    /* =========================
+       TOAST
+       ========================= */
+
+    toastMessage?.let {
+
+        Toast(
+
+            message = it,
+
+            type = toastType,
+
+            onClose = {
+
+                toastMessage = null
+            }
+        )
     }
 }

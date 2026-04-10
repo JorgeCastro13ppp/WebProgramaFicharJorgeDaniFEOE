@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.CreateVacacionDialog
 import com.empresa.adminpanel.components.ScreenHeader
+import com.empresa.adminpanel.components.Toast
 import com.empresa.adminpanel.models.Usuario
 import com.empresa.adminpanel.models.Vacacion
 import kotlinx.browser.window
@@ -50,6 +51,18 @@ fun VacacionesScreen() {
     var showDialog by remember { mutableStateOf(false) }
     var loading by remember {
         mutableStateOf(true)
+    }
+
+    var toastMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var toastType by remember {
+        mutableStateOf("success")
+    }
+
+    var selectedUsername by remember {
+        mutableStateOf<String?>(null)
     }
 
     val vacacionesFiltradas = vacaciones.filter {
@@ -174,9 +187,22 @@ fun VacacionesScreen() {
                 showCreateDialog = false
             },
 
-            onCreated = {
+            onError = { mensaje ->
+
+                showCreateDialog = false
+
+                toastMessage = mensaje
+                toastType = "warning"
+            },
+
+            onCreated = { username ->
 
                 cargarVacaciones()
+
+                toastMessage =
+                    "Vacaciones creadas para $username"
+
+                toastType = "success"
             }
         )
     }
@@ -423,11 +449,11 @@ fun VacacionesScreen() {
 
                                                 onClick {
 
-                                                    selectedVacacionId =
-                                                        vacacion.id
+                                                    selectedVacacionId = vacacion.id
 
-                                                    nuevoEstado =
-                                                        "aprobado"
+                                                    selectedUsername = vacacion.username
+
+                                                    nuevoEstado = "aprobado"
 
                                                     showDialog = true
                                                 }
@@ -444,11 +470,11 @@ fun VacacionesScreen() {
 
                                                 onClick {
 
-                                                    selectedVacacionId =
-                                                        vacacion.id
+                                                    selectedVacacionId = vacacion.id
 
-                                                    nuevoEstado =
-                                                        "rechazado"
+                                                    selectedUsername = vacacion.username
+
+                                                    nuevoEstado = "rechazado"
 
                                                     showDialog = true
                                                 }
@@ -506,14 +532,27 @@ fun VacacionesScreen() {
 
                 onConfirm = {
 
-                    actualizarEstado(
+                    scope.launch {
 
-                        selectedVacacionId!!,
+                        actualizarEstado(
+                            selectedVacacionId!!,
+                            nuevoEstado
+                        )
 
-                        nuevoEstado
-                    )
+                        toastMessage =
+                            if (nuevoEstado == "aprobado")
+                                "Vacaciones aprobadas para $selectedUsername"
+                            else
+                                "Vacaciones rechazadas para $selectedUsername"
 
-                    showDialog = false
+                        toastType =
+                            if (nuevoEstado == "aprobado")
+                                "success"
+                            else
+                                "error"
+
+                        showDialog = false
+                    }
                 },
 
                 onCancel = {
@@ -522,6 +561,21 @@ fun VacacionesScreen() {
                 }
             )
         }
+    }
+
+    toastMessage?.let {
+
+        Toast(
+
+            message = it,
+
+            type = toastType,
+
+            onClose = {
+
+                toastMessage = null
+            }
+        )
     }
 }
 
