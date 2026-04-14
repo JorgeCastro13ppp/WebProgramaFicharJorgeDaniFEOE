@@ -1,6 +1,7 @@
 package com.empresa.adminpanel.components
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.screens.obtenerFechaHoraActual
 import kotlinx.browser.window
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.web.css.*
@@ -9,7 +10,10 @@ import style.AppStyles
 import kotlin.js.Date
 
 @Composable
-fun TopBar(onLogout: () -> Unit) {
+fun TopBar(
+    onLogout: () -> Unit,
+    showToast: (String, String) -> Unit
+) {
 
     val username =
         window.localStorage.getItem("username") ?: "admin"
@@ -108,6 +112,11 @@ fun TopBar(onLogout: () -> Unit) {
 
                     window.localStorage.removeItem("token")
                     window.localStorage.removeItem("username")
+
+                    showToast(
+                        "Sesión cerrada · ${obtenerFechaHoraActual()}",
+                        "error"
+                    )
 
                     onLogout()
                 }

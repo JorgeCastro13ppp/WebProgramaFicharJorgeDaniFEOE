@@ -39,7 +39,6 @@ fun CreateDocumentoDialog(
         if (selectedUserId.isEmpty() || selectedFile == null)
             return
 
-
         scope.launch {
 
             loading = true
@@ -53,7 +52,6 @@ fun CreateDocumentoDialog(
 
             formData.append("file", selectedFile!!)
             formData.append("userId", selectedUserId)
-            formData.append("tipo", tipo)
 
 
             val headers = Headers()
@@ -61,29 +59,70 @@ fun CreateDocumentoDialog(
             headers.append("Authorization", "Bearer $token")
 
 
-            val requestInit = js("{}")
+            val requestUpload = js("{}")
 
-            requestInit.method = "POST"
-            requestInit.headers = headers
-            requestInit.body = formData
+            requestUpload.method = "POST"
+            requestUpload.headers = headers
+            requestUpload.body = formData
 
 
-            val response = window.fetch(
+            val uploadResponse = window.fetch(
+                "http://127.0.0.1:8080/upload?userId=$selectedUserId",
+                requestUpload
+            ).await()
 
-                "http://127.0.0.1:8080/upload",
 
-                requestInit
+            if (!uploadResponse.ok) {
 
+                loading = false
+                return@launch
+            }
+
+
+            val uploadText = uploadResponse.text().await()
+
+            val json = JSON.parse<dynamic>(uploadText)
+
+            val rutaArchivo = json.url as String
+
+
+            /* SEGUNDO PASO: registrar documento en BD */
+
+            val documentObject = js("{}")
+
+            documentObject.userId = selectedUserId.toInt()
+            documentObject.nombre = selectedFile!!.name
+            documentObject.tipo = tipo
+            documentObject.url = rutaArchivo
+
+            val documentBody = JSON.stringify(documentObject)
+
+
+            val headersDocument = Headers()
+
+            headersDocument.append("Authorization", "Bearer $token")
+            headersDocument.append("Content-Type", "application/json")
+
+
+            val requestDocument = js("{}")
+
+            requestDocument.method = "POST"
+            requestDocument.headers = headersDocument
+            requestDocument.body = documentBody
+
+
+            val saveResponse = window.fetch(
+                "http://127.0.0.1:8080/documentos",
+                requestDocument
             ).await()
 
 
             loading = false
 
 
-            if (response.ok) {
+            if (saveResponse.ok) {
 
                 onUploaded()
-
                 onClose()
             }
         }

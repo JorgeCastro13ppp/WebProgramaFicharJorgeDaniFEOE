@@ -28,8 +28,26 @@ data class LoginRequest(
     val password: String
 )
 
+fun obtenerFechaHoraActual(): String {
+
+    val now = kotlin.js.Date()
+
+    val dia = now.getDate().toString().padStart(2, '0')
+    val mes = (now.getMonth() + 1).toString().padStart(2, '0')
+    val año = now.getFullYear()
+
+    val horas = now.getHours().toString().padStart(2, '0')
+    val minutos = now.getMinutes().toString().padStart(2, '0')
+    val segundos = now.getSeconds().toString().padStart(2, '0')
+
+    return "$dia/$mes/$año $horas:$minutos:$segundos"
+}
+
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit) {
+fun LoginScreen(
+    onLoginSuccess: () -> Unit,
+    showToast: (String, String) -> Unit
+){
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -73,6 +91,11 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 window.localStorage.setItem(
                     "username",
                     username
+                )
+
+                showToast(
+                    "Sesión iniciada · ${obtenerFechaHoraActual()}",
+                    "success"
                 )
 
                 onLoginSuccess()

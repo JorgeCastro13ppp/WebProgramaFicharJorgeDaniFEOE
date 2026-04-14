@@ -6,7 +6,10 @@ import org.jetbrains.compose.web.dom.*
 import style.AppStyles
 
 @Composable
-fun AdminLayout(onLogout: () -> Unit) {
+fun AdminLayout(
+    onLogout: () -> Unit,
+    showToast: (String, String) -> Unit
+) {
 
     var screen by remember { mutableStateOf("dashboard") }
 
@@ -142,7 +145,10 @@ fun AdminLayout(onLogout: () -> Unit) {
         // Content area
         Div({ classes(AppStyles.content, AppStyles.screenFade) }) {
 
-            TopBar(onLogout)
+            TopBar(
+                onLogout = onLogout,
+                showToast = showToast
+            )
 
             when (screen) {
 

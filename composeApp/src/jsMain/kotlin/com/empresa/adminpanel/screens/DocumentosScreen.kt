@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.CreateDocumentoDialog
 import com.empresa.adminpanel.components.ScreenHeader
+import com.empresa.adminpanel.components.Toast
 import com.empresa.adminpanel.models.Documento
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
@@ -26,6 +27,20 @@ import style.AppStyles
 
 @Composable
 fun DocumentosScreen() {
+
+    var toastMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var toastType by remember {
+        mutableStateOf("success")
+    }
+
+
+    var selectedDocumentoNombre by remember {
+        mutableStateOf<String?>(null)
+    }
+
 
     var usuarios by remember {
         mutableStateOf<List<Usuario>>(emptyList())
@@ -59,6 +74,9 @@ fun DocumentosScreen() {
         mutableStateOf(false)
     }
 
+    var sortBy by remember { mutableStateOf("nombre") }
+    var order by remember { mutableStateOf("asc") }
+
     val scope = rememberCoroutineScope()
 
     fun cargarDocumentos() {
@@ -67,7 +85,8 @@ fun DocumentosScreen() {
 
             loading = true
 
-            val token = window.localStorage.getItem("token")
+            val token =
+                window.localStorage.getItem("token")
 
             if (token == null) {
 
@@ -79,31 +98,62 @@ fun DocumentosScreen() {
 
             headers.append("Authorization", "Bearer $token")
 
-            var url = "http://127.0.0.1:8080/admin/documentos?"
+
+            val params = mutableListOf<String>()
+
 
             if (selectedUserId != "todos") {
 
-                url += "userId=$selectedUserId&"
+                params.add("userId=$selectedUserId")
             }
+
 
             if (selectedTipo != "todos") {
 
-                url += "tipo=$selectedTipo"
+                params.add("tipo=$selectedTipo")
             }
+
+
+            if (sortBy.isNotBlank()) {
+
+                params.add("sortBy=$sortBy")
+            }
+
+
+            if (order.isNotBlank()) {
+
+                params.add("order=$order")
+            }
+
+
+            val queryString =
+                if (params.isNotEmpty())
+                    "?" + params.joinToString("&")
+                else
+                    ""
+
+
+            val url =
+                "http://127.0.0.1:8080/admin/documentos$queryString"
+
 
             val requestInit = js("{}")
 
             requestInit.method = "GET"
             requestInit.headers = headers
 
-            val response = window.fetch(
-                url,
-                requestInit
-            ).await()
+
+            val response =
+                window.fetch(
+                    url,
+                    requestInit
+                ).await()
+
 
             if (response.ok) {
 
-                val text = response.text().await()
+                val text =
+                    response.text().await()
 
                 documentos =
                     Json.decodeFromString(text)
@@ -204,6 +254,60 @@ fun DocumentosScreen() {
             }
 
         ) {
+
+            /*FILTRO ORDENACIÓN*/
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    sortBy = it.target.value
+
+                    cargarDocumentos()
+                }
+
+            }) {
+
+                Option("nombre") {
+
+                    Text("Nombre")
+                }
+
+                Option("tipo") {
+
+                    Text("Tipo")
+                }
+
+                Option("usuario") {
+
+                    Text("Usuario")
+                }
+            }
+
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    order = it.target.value
+
+                    cargarDocumentos()
+                }
+
+            }) {
+
+                Option("asc") {
+
+                    Text("Ascendente")
+                }
+
+                Option("desc") {
+
+                    Text("Descendente")
+                }
+            }
 
             /* FILTRO USUARIO */
 
@@ -418,7 +522,7 @@ fun DocumentosScreen() {
                                         onClick {
 
                                             window.open(
-                                                "http://127.0.0.1:8080${doc.url}",
+                                                doc.url,
                                                 "_blank"
                                             )
                                         }
@@ -446,17 +550,12 @@ fun DocumentosScreen() {
 
                                             selectedDocumentoId = doc.id
 
+                                            selectedDocumentoNombre = doc.nombre
+
                                             showDialog = true
                                         }
 
                                     }) {
-
-                                        Img(
-                                            src = "/icons/delete.svg",
-                                            attrs = {
-                                                classes(AppStyles.deleteIcon)
-                                            }
-                                        )
 
                                         Text("Eliminar")
                                     }
@@ -470,12 +569,15 @@ fun DocumentosScreen() {
 
 
         /* CONFIRM DIALOG */
-
         if (showDialog && selectedDocumentoId != null) {
 
             ConfirmDialog(
 
-                message = "¿Eliminar documento?",
+                message = """
+            ¿Eliminar documento?
+            
+            Documento: $selectedDocumentoNombre
+        """.trimIndent(),
 
                 confirmText = "Eliminar",
 
@@ -483,9 +585,19 @@ fun DocumentosScreen() {
 
                 onConfirm = {
 
-                    eliminarDocumento(selectedDocumentoId!!)
+                    scope.launch {
 
-                    showDialog = false
+                        eliminarDocumento(selectedDocumentoId!!)
+
+                        toastMessage =
+                            "Documento eliminado: $selectedDocumentoNombre"
+
+                        toastType = "error"
+
+                        cargarDocumentos()
+
+                        showDialog = false
+                    }
                 },
 
                 onCancel = {
@@ -494,5 +606,21 @@ fun DocumentosScreen() {
                 }
             )
         }
+
+    }
+
+    toastMessage?.let {
+
+        Toast(
+
+            message = it,
+
+            type = toastType,
+
+            onClose = {
+
+                toastMessage = null
+            }
+        )
     }
 }
