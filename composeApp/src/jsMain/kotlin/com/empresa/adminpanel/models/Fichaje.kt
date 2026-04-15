@@ -8,5 +8,8 @@ data class Fichaje(
     val userId: Int,
     val username: String,
     val fechaHora: Long,
-    val tipo: String
+    val tipo: String,
+    val latitud: Double? = null,
+    val longitud: Double? = null,
+    val accuracy: Double? = null
 )

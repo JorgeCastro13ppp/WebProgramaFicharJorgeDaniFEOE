@@ -42,33 +42,78 @@ fun UsuariosScreen() {
     var toastType by remember {
         mutableStateOf("success")
     }
+
+    var sortBy by remember { mutableStateOf("username") }
+    var order by remember { mutableStateOf("asc") }
     val scope = rememberCoroutineScope()
 
     fun cargarUsuarios() {
 
         scope.launch {
 
-            val token = window.localStorage.getItem("token")
-                ?: return@launch
+            val token =
+                window.localStorage.getItem("token")
+                    ?: return@launch
+
 
             val headers = Headers()
-            headers.append("Authorization", "Bearer $token")
+
+            headers.append(
+                "Authorization",
+                "Bearer $token"
+            )
+
+
+            val params = mutableListOf<String>()
+
+
+            if (selectedRole != "todos") {
+
+                params.add("role=$selectedRole")
+            }
+
+
+            if (sortBy.isNotBlank()) {
+
+                params.add("sortBy=$sortBy")
+            }
+
+
+            if (order.isNotBlank()) {
+
+                params.add("order=$order")
+            }
+
+
+            val queryString =
+                if (params.isNotEmpty())
+                    "?" + params.joinToString("&")
+                else
+                    ""
+
+
+            val url =
+                "http://127.0.0.1:8080/admin/usuarios$queryString"
+
 
             val requestInit = js("{}")
+
             requestInit.method = "GET"
             requestInit.headers = headers
 
-            val response = window.fetch(
-                "http://127.0.0.1:8080/admin/usuarios",
-                requestInit
-            ).await()
+
+            val response =
+                window.fetch(url, requestInit)
+                    .await()
+
 
             if (response.ok) {
 
-                val text = response.text().await()
+                val text =
+                    response.text().await()
 
                 usuarios =
-                    Json.decodeFromString<List<Usuario>>(text)
+                    Json.decodeFromString(text)
             }
         }
     }
@@ -107,6 +152,62 @@ fun UsuariosScreen() {
             }
 
         ) {
+            /* FILTRO ORDENACIÓN */
+
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    sortBy = it.target.value
+
+                    cargarUsuarios()
+                }
+
+            }) {
+
+                Option("username") {
+
+                    Text("Usuario")
+                }
+
+                Option("role") {
+
+                    Text("Rol")
+                }
+
+                Option("id") {
+
+                    Text("ID")
+                }
+            }
+
+            /* ORDEN ASC / DESC */
+
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    order = it.target.value
+
+                    cargarUsuarios()
+                }
+
+            }) {
+
+                Option("asc") {
+
+                    Text("Ascendente")
+                }
+
+                Option("desc") {
+
+                    Text("Descendente")
+                }
+            }
 
             /* FILTRO ROLE */
 
@@ -117,6 +218,7 @@ fun UsuariosScreen() {
                 onChange {
 
                     selectedRole = it.target.value
+                    cargarUsuarios()
                 }
 
             }) {
@@ -190,12 +292,7 @@ fun UsuariosScreen() {
                 }
 
                 Tbody {
-                    val usuariosFiltrados = usuarios.filter {
-
-                        selectedRole == "todos" ||
-
-                                it.role == selectedRole
-                    }
+                    val usuariosFiltrados = usuarios
 
                     usuariosFiltrados.forEach { usuario ->
 
@@ -303,8 +400,6 @@ fun UsuariosScreen() {
                             "Usuario \"$selectedUsername\" eliminado correctamente"
 
                         toastType = "error"
-
-                        cargarUsuarios()
 
                         cargarUsuarios()
 

@@ -1064,4 +1064,22 @@ object AppStyles : StyleSheet() {
         }
     }
 
+    @OptIn(ExperimentalComposeWebApi::class)
+    val locationIcon by style {
+
+        width(18.px)
+        height(18.px)
+
+        cursor("pointer")
+
+        property("transition", "transform 0.15s ease")
+
+        hover {
+
+            transform {
+                scale(1.15)
+            }
+        }
+    }
+
 }

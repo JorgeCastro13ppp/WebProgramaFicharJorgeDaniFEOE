@@ -11,7 +11,9 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.web.attributes.ATarget
 import org.jetbrains.compose.web.attributes.InputType
+import org.jetbrains.compose.web.attributes.target
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.fetch.Headers
@@ -52,6 +54,9 @@ fun FichajesScreen() {
     var selectedTipoFichaje by remember {
         mutableStateOf<String?>(null)
     }
+
+    var sortBy by remember { mutableStateOf("fecha") }
+    var order by remember { mutableStateOf("desc") }
 
     val scope = rememberCoroutineScope()
 
@@ -118,28 +123,62 @@ fun FichajesScreen() {
                 window.localStorage.getItem("token")
                     ?: return@launch
 
+
             val headers = Headers()
 
-            headers.append("Authorization", "Bearer $token")
+            headers.append(
+                "Authorization",
+                "Bearer $token"
+            )
+
+
+            val params = mutableListOf<String>()
+
+
+            if (selectedUserId != "todos") {
+
+                params.add("userId=$selectedUserId")
+            }
+
+
+            if (sortBy.isNotBlank()) {
+
+                params.add("sortBy=$sortBy")
+            }
+
+
+            if (order.isNotBlank()) {
+
+                params.add("order=$order")
+            }
+
+
+            val queryString =
+                if (params.isNotEmpty())
+                    "?" + params.joinToString("&")
+                else
+                    ""
+
+
+            val url =
+                "http://127.0.0.1:8080/admin/fichajes$queryString"
+
 
             val requestInit = js("{}")
 
             requestInit.method = "GET"
             requestInit.headers = headers
 
-            val url =
-                if (selectedUserId == "todos")
-                    "http://127.0.0.1:8080/admin/fichajes"
-                else
-                    "http://127.0.0.1:8080/admin/fichajes?userId=$selectedUserId"
 
             val response =
                 window.fetch(url, requestInit)
                     .await()
 
+
             if (response.ok) {
 
-                val text = response.text().await()
+                val text =
+                    response.text().await()
 
                 fichajes =
                     Json.decodeFromString(text)
@@ -223,6 +262,55 @@ fun FichajesScreen() {
             }
 
         ) {
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    sortBy = it.target.value
+
+                    cargarFichajes()
+                }
+
+            }) {
+
+                Option("fecha") { Text("Fecha") }
+
+                Option("hora") { Text("Hora") }
+
+                Option("usuario") { Text("Usuario") }
+
+                Option("accion") { Text("Acción") }
+
+                Option("contexto") { Text("Contexto") }
+
+                Option("id") { Text("ID") }
+            }
+
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    order = it.target.value
+
+                    cargarFichajes()
+                }
+
+            }) {
+
+                Option("desc") {
+
+                    Text("Descendente")
+                }
+
+                Option("asc") {
+
+                    Text("Ascendente")
+                }
+            }
 
             /* FILTRO USUARIO */
 
@@ -350,6 +438,8 @@ fun FichajesScreen() {
 
             /* TABLA */
 
+            /* TABLA */
+
             Div({
 
                 classes(
@@ -374,6 +464,7 @@ fun FichajesScreen() {
                             Th { Text("Fecha") }
                             Th { Text("Hora") }
                             Th { Text("Tipo") }
+                            Th { Text("Ubicación") }
                             Th { Text("Acción") }
                         }
                     }
@@ -394,14 +485,27 @@ fun FichajesScreen() {
 
                             Tr {
 
+                                /* ID */
+
                                 Td { Text("${fichaje.id}") }
+
+
+                                /* USUARIO */
 
                                 Td { Text(fichaje.username) }
 
+
+                                /* FECHA */
+
                                 Td { Text(fecha) }
+
+
+                                /* HORA */
 
                                 Td { Text(hora) }
 
+
+                                /* TIPO */
 
                                 Td {
 
@@ -420,6 +524,50 @@ fun FichajesScreen() {
                                 }
 
 
+                                /* UBICACIÓN (Google Maps) */
+
+                                Td {
+
+                                    if (
+                                        fichaje.latitud != null &&
+                                        fichaje.longitud != null
+                                    ) {
+
+                                        val mapsUrl =
+                                            "https://www.google.com/maps?q=${fichaje.latitud}, ${fichaje.longitud}"
+
+                                        A(
+                                            href = mapsUrl,
+                                            attrs = {
+
+                                                target(ATarget.Blank)
+
+                                                title(
+                                                    "Precisión: ${
+                                                        fichaje.accuracy?.toInt()
+                                                            ?: "desconocida"
+                                                    } metros"
+                                                )
+                                            }
+                                        ) {
+
+                                            Img(
+                                                src = "/icons/location.svg",
+                                                attrs = {
+                                                    classes(AppStyles.locationIcon)
+                                                }
+                                            )
+                                        }
+
+                                    } else {
+
+                                        Text("-")
+                                    }
+                                }
+
+
+                                /* ELIMINAR */
+
                                 Td {
 
                                     Button({
@@ -428,8 +576,11 @@ fun FichajesScreen() {
 
                                         onClick {
 
-                                            selectedFichajeId = fichaje.id
-                                            selectedTipoFichaje = fichaje.tipo
+                                            selectedFichajeId =
+                                                fichaje.id
+
+                                            selectedTipoFichaje =
+                                                fichaje.tipo
 
                                             showDialog = true
                                         }

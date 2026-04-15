@@ -43,6 +43,9 @@ fun FaltasScreen() {
 
     var selectedFechaFalta by remember { mutableStateOf<String?>(null) }
 
+    var sortBy by remember { mutableStateOf("fecha") }
+    var order by remember { mutableStateOf("desc") }
+
     val scope = rememberCoroutineScope()
 
 
@@ -64,20 +67,56 @@ fun FaltasScreen() {
 
             headers.append("Authorization", "Bearer $token")
 
+
+            val params = mutableListOf<String>()
+
+
+            if (selectedTipo != "todos") {
+
+                params.add("tipo=$selectedTipo")
+            }
+
+
+            if (sortBy.isNotBlank()) {
+
+                params.add("sortBy=$sortBy")
+            }
+
+
+            if (order.isNotBlank()) {
+
+                params.add("order=$order")
+            }
+
+
+            val queryString =
+                if (params.isNotEmpty())
+                    "?" + params.joinToString("&")
+                else
+                    ""
+
+
+            val url =
+                "http://127.0.0.1:8080/faltas$queryString"
+
+
             val requestInit = js("{}")
 
             requestInit.method = "GET"
             requestInit.headers = headers
 
+
             val response =
                 window.fetch(
-                    "http://127.0.0.1:8080/faltas",
+                    url,
                     requestInit
                 ).await()
 
+
             if (response.ok) {
 
-                val text = response.text().await()
+                val text =
+                    response.text().await()
 
                 faltas =
                     Json.decodeFromString(text)
@@ -227,6 +266,64 @@ fun FaltasScreen() {
             }
 
         ) {
+
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    sortBy = it.target.value
+
+                    cargarFaltas()
+                }
+
+            }) {
+
+                Option("fecha") {
+
+                    Text("Fecha")
+                }
+
+                Option("usuario") {
+
+                    Text("Usuario")
+                }
+
+                Option("tipo") {
+
+                    Text("Tipo")
+                }
+
+                Option("id") {
+
+                    Text("ID")
+                }
+            }
+
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    order = it.target.value
+
+                    cargarFaltas()
+                }
+
+            }) {
+
+                Option("desc") {
+
+                    Text("Descendente")
+                }
+
+                Option("asc") {
+
+                    Text("Ascendente")
+                }
+            }
 
             Select({
 

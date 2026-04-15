@@ -76,6 +76,9 @@ fun VacacionesScreen() {
                         it.userId.toString() == selectedUserId)
     }
 
+    var sortBy by remember { mutableStateOf("inicio") }
+    var order by remember { mutableStateOf("desc") }
+
     val scope = rememberCoroutineScope()
 
     fun cargarVacaciones() {
@@ -84,8 +87,10 @@ fun VacacionesScreen() {
 
             loading = true
 
-            val token = window.localStorage.getItem("token")
-                ?: return@launch
+            val token =
+                window.localStorage.getItem("token")
+                    ?: return@launch
+
 
             val headers = Headers()
 
@@ -94,19 +99,62 @@ fun VacacionesScreen() {
                 "Bearer $token"
             )
 
+
+            val params = mutableListOf<String>()
+
+
+            if (selectedUserId != "todos") {
+
+                params.add("userId=$selectedUserId")
+            }
+
+
+            if (selectedEstado != "todos") {
+
+                params.add("estado=$selectedEstado")
+            }
+
+
+            if (sortBy.isNotBlank()) {
+
+                params.add("sortBy=$sortBy")
+            }
+
+
+            if (order.isNotBlank()) {
+
+                params.add("order=$order")
+            }
+
+
+            val queryString =
+                if (params.isNotEmpty())
+                    "?" + params.joinToString("&")
+                else
+                    ""
+
+
+            val url =
+                "http://127.0.0.1:8080/vacaciones$queryString"
+
+
             val requestInit = js("{}")
 
             requestInit.method = "GET"
             requestInit.headers = headers
 
-            val response = window.fetch(
-                "http://127.0.0.1:8080/vacaciones",
-                requestInit
-            ).await()
+
+            val response =
+                window.fetch(
+                    url,
+                    requestInit
+                ).await()
+
 
             if (response.ok) {
 
-                val text = response.text().await()
+                val text =
+                    response.text().await()
 
                 vacaciones =
                     Json.decodeFromString(text)
@@ -224,6 +272,53 @@ fun VacacionesScreen() {
             }
 
         ) {
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    sortBy = it.target.value
+
+                    cargarVacaciones()
+                }
+
+            }) {
+
+                Option("inicio") { Text("Fecha inicio") }
+
+                Option("fin") { Text("Fecha fin") }
+
+                Option("usuario") { Text("Usuario") }
+
+                Option("estado") { Text("Estado") }
+
+                Option("id") { Text("ID") }
+            }
+
+            Select({
+
+                classes(AppStyles.filterSelect)
+
+                onChange {
+
+                    order = it.target.value
+
+                    cargarVacaciones()
+                }
+
+            }) {
+
+                Option("desc") {
+
+                    Text("Descendente")
+                }
+
+                Option("asc") {
+
+                    Text("Ascendente")
+                }
+            }
 
             /* FILTRO USUARIO */
 
