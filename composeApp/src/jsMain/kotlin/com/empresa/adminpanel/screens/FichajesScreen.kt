@@ -1,6 +1,7 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.CreateFichajeDialog
 import com.empresa.adminpanel.components.ScreenHeader
@@ -99,7 +100,7 @@ fun FichajesScreen() {
             requestInit.headers = headers
 
             val response = window.fetch(
-                "http://127.0.0.1:8080/admin/usuarios",
+                "${ApiClient.BASE_URL}/admin/usuarios",
                 requestInit
             ).await()
 
@@ -161,7 +162,7 @@ fun FichajesScreen() {
 
 
             val url =
-                "http://127.0.0.1:8080/admin/fichajes$queryString"
+                "${ApiClient.BASE_URL}/admin/fichajes$queryString"
 
 
             val requestInit = js("{}")
@@ -205,7 +206,7 @@ fun FichajesScreen() {
         requestInit.headers = headers
 
         window.fetch(
-            "http://127.0.0.1:8080/admin/fichajes/$id",
+            "${ApiClient.BASE_URL}/admin/fichajes/$id",
             requestInit
         ).await()
     }
@@ -444,14 +445,13 @@ fun FichajesScreen() {
 
                 classes(
                     AppStyles.tableContainer,
-                    AppStyles.tableWrapperCentered
                 )
 
             }) {
 
                 Table({
 
-                    classes(AppStyles.table)
+                    classes(AppStyles.tableFlat)
 
                 }) {
 

@@ -18,31 +18,19 @@ fun ScreenHeader(
 
     Div({
 
-        style {
-
-            display(DisplayStyle.Flex)
-
-            justifyContent(JustifyContent.SpaceBetween)
-
-            alignItems(AlignItems.Center)
-
-            marginBottom(28.px)
-        }
+        classes(AppStyles.screenHeaderContainer)
 
     }) {
 
-        /* IZQUIERDA: título + botón recargar */
+        /*
+        ========================
+        BLOQUE IZQUIERDO
+        ========================
+        */
 
         Div({
 
-            style {
-
-                display(DisplayStyle.Flex)
-
-                alignItems(AlignItems.Center)
-
-                gap(16.px)
-            }
+            classes(AppStyles.screenHeaderLeft)
 
         }) {
 
@@ -60,8 +48,9 @@ fun ScreenHeader(
 
                 classes(AppStyles.secondaryButton)
 
-                onClick {
+                attr("type", "button")   // 🔥 SOLUCIÓN
 
+                onClick {
                     onRefresh()
                 }
 
@@ -79,18 +68,15 @@ fun ScreenHeader(
         }
 
 
-        /* DERECHA: filtros + botones extra */
+        /*
+        ========================
+        BLOQUE DERECHO
+        ========================
+        */
 
         Div({
 
-            style {
-
-                display(DisplayStyle.Flex)
-
-                gap(12.px)
-
-                alignItems(AlignItems.Center)
-            }
+            classes(AppStyles.screenHeaderRight)
 
         }) {
 

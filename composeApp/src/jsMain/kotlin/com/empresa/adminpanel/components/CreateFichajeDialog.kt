@@ -1,11 +1,13 @@
 package com.empresa.adminpanel.components
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
+import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.w3c.fetch.Headers
@@ -35,10 +37,30 @@ fun CreateFichajeDialog(
 
     var loading by remember { mutableStateOf(false) }
 
+
+    /* VALIDACIÓN VISUAL */
+
+    var userError by remember { mutableStateOf(false) }
+
+    var fechaError by remember { mutableStateOf(false) }
+
+    var horaError by remember { mutableStateOf(false) }
+
+
     val scope = rememberCoroutineScope()
 
 
     fun crearFichaje() {
+
+        userError = selectedUserId.isEmpty()
+
+        fechaError = fecha.isEmpty()
+
+        horaError = hora.isEmpty()
+
+        if (userError || fechaError || horaError)
+            return
+
 
         scope.launch {
 
@@ -48,9 +70,11 @@ fun CreateFichajeDialog(
                 window.localStorage.getItem("token")
                     ?: return@launch
 
+
             val headers = Headers()
 
             headers.append("Authorization", "Bearer $token")
+
             headers.append("Content-Type", "application/json")
 
 
@@ -73,7 +97,9 @@ fun CreateFichajeDialog(
                 accion
 
             bodyObject["latitud"] = 0.0
+
             bodyObject["longitud"] = 0.0
+
             bodyObject["accuracy"] = 0.0
 
 
@@ -89,7 +115,7 @@ fun CreateFichajeDialog(
 
             val response = window.fetch(
 
-                "http://127.0.0.1:8080/fichajes-eventos",
+                "${ApiClient.BASE_URL}/fichajes-eventos",
 
                 requestInit
 
@@ -121,199 +147,191 @@ fun CreateFichajeDialog(
 
         }) {
 
-            H3 {
+            H3({
+
+                classes(AppStyles.dialogTitle)
+
+            }) {
 
                 Text("Crear fichaje")
             }
 
 
-            /* USUARIO */
-
-            Select({
-
-                classes(AppStyles.loginInput)
-
-                onChange {
-
-                    selectedUserId =
-                        it.target.value
-                }
-
-            }) {
-
-                Option("") {
-
-                    Text("Seleccionar usuario")
-                }
-
-                usuarios.forEach {
-
-                    Option(it.id.toString()) {
-
-                        Text(it.username)
-                    }
-                }
-            }
-
-
-            /* FECHA */
-
-            Input(InputType.Date, attrs = {
-
-                classes(AppStyles.loginInput)
-
-                value(fecha)
-
-                onInput {
-
-                    fecha = it.value
-                }
-            })
-
-
-            /* HORA */
-
-            Input(InputType.Time, attrs = {
-
-                classes(AppStyles.loginInput)
-
-                value(hora)
-
-                onInput {
-
-                    hora = it.value
-                }
-            })
-
-
-            /* CONTEXTO */
-
-            Select({
-
-                classes(AppStyles.loginInput)
-
-                onChange {
-
-                    contexto = it.target.value
-                }
-
-            }) {
-
-                Option("TALLER") {
-
-                    Text("Taller")
-                }
-
-                Option("OBRA") {
-
-                    Text("Obra")
-                }
-
-                Option("REPARACION") {
-
-                    Text("Reparación")
-                }
-            }
-
-
-            /* ACCION */
-
-            Select({
-
-                classes(AppStyles.loginInput)
-
-                onChange {
-
-                    accion = it.target.value
-                }
-
-            }) {
-
-                Option("ENTRADA") {
-
-                    Text("Entrada")
-                }
-
-                Option("SALIDA") {
-
-                    Text("Salida")
-                }
-
-                Option("INICIO_VIAJE") {
-
-                    Text("Inicio viaje")
-                }
-
-                Option("FIN_VIAJE") {
-
-                    Text("Fin viaje")
-                }
-
-                Option("INICIO_DESCANSO") {
-
-                    Text("Inicio descanso")
-                }
-
-                Option("FIN_DESCANSO") {
-
-                    Text("Fin descanso")
-                }
-            }
-
-
-            /* BOTONES */
-
             Div({
 
-                style {
-
-                    display(DisplayStyle.Flex)
-
-                    gap(10.px)
-
-                    marginTop(16.px)
-                }
+                classes(AppStyles.dialogForm)
 
             }) {
 
-                Button({
+                /* USUARIO */
 
-                    classes(AppStyles.primaryButton)
+                Select({
 
-                    onClick {
+                    classes(AppStyles.dialogInput)
 
-                        if (
+                    if (userError)
+                        classes(AppStyles.dialogInputError)
 
-                            selectedUserId.isNotEmpty()
+                    onChange {
 
-                            && fecha.isNotEmpty()
+                        selectedUserId =
+                            it.target.value
 
-                            && hora.isNotEmpty()
-
-                        ) {
-
-                            crearFichaje()
-                        }
+                        userError = false
                     }
 
                 }) {
 
-                    if (loading) {
+                    Option("") {
 
-                        Div({
+                        Text("Seleccionar usuario")
+                    }
 
-                            classes(AppStyles.loader)
+                    usuarios.forEach {
 
-                        }) {}
+                        Option(it.id.toString()) {
 
-                    } else {
-
-                        Text("Guardar")
+                            Text(it.username)
+                        }
                     }
                 }
 
 
-                Button({
+                if (userError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona un usuario")
+                    }
+                }
+
+
+                /* FECHA */
+
+                Input(InputType.Date, attrs = {
+
+                    classes(AppStyles.dialogInput)
+
+                    if (fechaError)
+                        classes(AppStyles.dialogInputError)
+
+                    value(fecha)
+
+                    onInput {
+
+                        fecha = it.value
+
+                        fechaError = false
+                    }
+                })
+
+
+                if (fechaError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona una fecha")
+                    }
+                }
+
+
+                /* HORA */
+
+                Input(InputType.Time, attrs = {
+
+                    classes(AppStyles.dialogInput)
+
+                    if (horaError)
+                        classes(AppStyles.dialogInputError)
+
+                    value(hora)
+
+                    onInput {
+
+                        hora = it.value
+
+                        horaError = false
+                    }
+                })
+
+
+                if (horaError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona una hora")
+                    }
+                }
+
+
+                /* CONTEXTO */
+
+                Select({
+
+                    classes(AppStyles.dialogInput)
+
+                    onChange {
+
+                        contexto = it.target.value
+                    }
+
+                }) {
+
+                    Option("TALLER") { Text("Taller") }
+
+                    Option("OBRA") { Text("Obra") }
+
+                    Option("REPARACION") { Text("Reparación") }
+                }
+
+
+                /* ACCIÓN */
+
+                Select({
+
+                    classes(AppStyles.dialogInput)
+
+                    onChange {
+
+                        accion = it.target.value
+                    }
+
+                }) {
+
+                    Option("ENTRADA") { Text("Entrada") }
+
+                    Option("SALIDA") { Text("Salida") }
+
+                    Option("INICIO_VIAJE") { Text("Inicio viaje") }
+
+                    Option("FIN_VIAJE") { Text("Fin viaje") }
+
+                    Option("INICIO_DESCANSO") { Text("Inicio descanso") }
+
+                    Option("FIN_DESCANSO") { Text("Fin descanso") }
+                }
+            }
+
+
+            Div({
+
+                classes(AppStyles.dialogActions)
+
+            }) {
+
+                Button(attrs = {
 
                     classes(AppStyles.secondaryButton)
 
@@ -325,6 +343,44 @@ fun CreateFichajeDialog(
                 }) {
 
                     Text("Cancelar")
+                }
+
+
+                Button(attrs = {
+
+                    classes(AppStyles.primaryButton)
+
+                    if (
+                        selectedUserId.isEmpty()
+                        || fecha.isEmpty()
+                        || hora.isEmpty()
+                        || loading
+                    ) {
+
+                        disabled()
+
+                        classes(AppStyles.primaryButtonDisabled)
+                    }
+
+                    onClick {
+
+                        crearFichaje()
+                    }
+
+                }) {
+
+                    if (loading) {
+
+                        Div({
+
+                            classes(AppStyles.loaderSmall)
+
+                        }) {}
+
+                    } else {
+
+                        Text("Guardar")
+                    }
                 }
             }
         }

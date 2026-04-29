@@ -4,11 +4,10 @@ import androidx.compose.runtime.Composable
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
 import style.AppStyles
-
 @Composable
 fun StatCard(
     title: String,
-    value: String,
+    value: String?,
     accent: StatAccent
 ) {
 
@@ -17,6 +16,7 @@ fun StatCard(
         StatAccent.GREEN -> AppStyles.statAccentGreen
         StatAccent.ORANGE -> AppStyles.statAccentOrange
         StatAccent.RED -> AppStyles.statAccentRed
+        StatAccent.YELLOW -> AppStyles.statAccentYellow
     }
 
     Div({
@@ -36,7 +36,17 @@ fun StatCard(
         Div({
             classes(AppStyles.statValue)
         }) {
-            Text(value)
+
+            if (value == null) {
+
+                Div({
+                    classes(AppStyles.skeletonLoader)
+                })
+
+            } else {
+
+                Text(value)
+            }
         }
     }
 }

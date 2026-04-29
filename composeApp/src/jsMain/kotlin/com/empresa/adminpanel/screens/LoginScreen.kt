@@ -1,6 +1,7 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
@@ -10,15 +11,6 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.attributes.*
-import org.jetbrains.compose.web.css.CSSNumeric
-import org.jetbrains.compose.web.css.DisplayStyle
-import org.jetbrains.compose.web.css.display
-import org.jetbrains.compose.web.css.keywords.auto
-import org.jetbrains.compose.web.css.marginBottom
-import org.jetbrains.compose.web.css.marginLeft
-import org.jetbrains.compose.web.css.marginRight
-import org.jetbrains.compose.web.css.px
-import org.jetbrains.compose.web.css.width
 import org.w3c.fetch.Headers
 import style.AppStyles
 
@@ -47,18 +39,30 @@ fun obtenerFechaHoraActual(): String {
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     showToast: (String, String) -> Unit
-){
+) {
 
     var username by remember { mutableStateOf("") }
+
     var password by remember { mutableStateOf("") }
+
+    var loading by remember { mutableStateOf(false) }
+
+    var error by remember { mutableStateOf<String?>(null) }
 
     val scope = rememberCoroutineScope()
 
+
     fun login() {
+
+        if (username.isBlank() || password.isBlank())
+            return
 
         scope.launch {
 
+            loading = true
+
             val headers = Headers()
+
             headers.append("Content-Type", "application/json")
 
             val body = Json.encodeToString(
@@ -67,14 +71,16 @@ fun LoginScreen(
 
             val requestInit = js("{}")
 
-            requestInit.method = "POST"
-            requestInit.headers = headers
-            requestInit.body = body
+            requestInit["method"] = "POST"
+            requestInit["headers"] = headers
+            requestInit["body"] = body
 
             val response = window.fetch(
-                "http://127.0.0.1:8080/login",
+                "${ApiClient.BASE_URL}/login",
                 requestInit
             ).await()
+
+            loading = false
 
             if (response.ok) {
 
@@ -85,6 +91,10 @@ fun LoginScreen(
 
                 window.localStorage.setItem(
                     "token",
+                    json.token as String
+                )
+
+                ApiClient.setToken(
                     json.token as String
                 )
 
@@ -99,73 +109,169 @@ fun LoginScreen(
                 )
 
                 onLoginSuccess()
+
+            } else {
+
+                error = "Usuario o contraseña incorrectos"
             }
         }
     }
 
+
     Div({
+
         classes(AppStyles.loginContainer)
+
     }) {
 
         Div({
+
             classes(AppStyles.loginCard)
+
         }) {
 
+            /*
+            ========================
+            LOGO
+            ========================
+            */
+
             Img(
-                src = "/icons/admin.svg",
+
+                src = "icons/logo.png",
+
                 attrs = {
-                    style {
-                        width(48.px)
-                        marginBottom(14.px)
-                        display(DisplayStyle.Block)
-                        marginLeft(auto as CSSNumeric)
-                        marginRight(auto as CSSNumeric)
-                    }
+
+                    classes(AppStyles.loginLogo)
                 }
             )
 
+
+            /*
+            ========================
+            TITLE
+            ========================
+            */
+
             H2({
+
                 classes(AppStyles.loginTitle)
+
             }) {
-                Text("Admin Panel")
+
+                Text("Panel de Administración")
             }
+
+
+            /*
+            ========================
+            USERNAME
+            ========================
+            */
 
             Input(InputType.Text, attrs = {
 
                 classes(AppStyles.loginInput)
 
-                attr("placeholder", "Usuario")
+                placeholder("Usuario")
 
                 value(username)
 
-                onInput { event ->
-                    username = event.value
+                onInput {
+
+                    username = it.value
+
+                    error = null
+                }
+
+                onKeyDown {
+
+                    if (it.key == "Enter")
+                        login()
                 }
             })
+
+
+            /*
+            ========================
+            PASSWORD
+            ========================
+            */
 
             Input(InputType.Password, attrs = {
 
                 classes(AppStyles.loginInput)
 
-                attr("placeholder", "Contraseña")
+                placeholder("Contraseña")
 
                 value(password)
 
-                onInput { event ->
-                    password = event.value
+                onInput {
+
+                    password = it.value
+
+                    error = null
+                }
+
+                onKeyDown {
+
+                    if (it.key == "Enter")
+                        login()
                 }
             })
+
+
+            /*
+            ========================
+            ERROR MESSAGE
+            ========================
+            */
+
+            if (error != null) {
+
+                P({
+
+                    classes(AppStyles.loginError)
+
+                }) {
+
+                    Text(error!!)
+                }
+            }
+
+
+            /*
+            ========================
+            BUTTON
+            ========================
+            */
 
             Button({
 
                 classes(AppStyles.loginButton)
 
+                if (username.isBlank() || password.isBlank() || loading)
+                    disabled()
+
                 onClick {
+
                     login()
                 }
 
             }) {
-                Text("Acceder")
+
+                if (loading) {
+
+                    Div({
+
+                        classes(AppStyles.loaderSmall)
+
+                    }) {}
+
+                } else {
+
+                    Text("Acceder")
+                }
             }
         }
     }

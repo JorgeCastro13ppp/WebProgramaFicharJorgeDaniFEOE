@@ -70,12 +70,11 @@ fun Toast(
             position(Position.Fixed)
 
             bottom(24.px)
-
             right(24.px)
 
-            padding(16.px)
+            padding(16.px, 20.px)
 
-            borderRadius(12.px)
+            borderRadius(14.px)
 
             backgroundColor(background)
 
@@ -88,6 +87,8 @@ fun Toast(
             alignItems(AlignItems.Center)
 
             gap(12.px)
+
+            property("box-shadow", "0 10px 28px rgba(0,0,0,0.18)")
 
             animation(AppStyles.fadeIn) {
 

@@ -1,11 +1,13 @@
 package com.empresa.adminpanel.components
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
+import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
@@ -23,27 +25,28 @@ fun CreateFaltaDialog(
         String,
         String
     ) -> Unit,
+
     onError: (String) -> Unit,
 
     onCancel: () -> Unit
 
 ) {
 
-    var selectedUserId by remember {
-        mutableStateOf("")
-    }
+    var selectedUserId by remember { mutableStateOf("") }
 
-    var fecha by remember {
-        mutableStateOf("")
-    }
+    var fecha by remember { mutableStateOf("") }
 
-    var tipo by remember {
-        mutableStateOf("retraso")
-    }
+    var tipo by remember { mutableStateOf("retraso") }
 
-    var descripcion by remember {
-        mutableStateOf("")
-    }
+    var descripcion by remember { mutableStateOf("") }
+
+
+    /* VALIDACIÓN VISUAL */
+
+    var userError by remember { mutableStateOf(false) }
+
+    var fechaError by remember { mutableStateOf(false) }
+
 
     val scope = rememberCoroutineScope()
 
@@ -60,121 +63,182 @@ fun CreateFaltaDialog(
 
         }) {
 
-            H3 {
+            H3({
+
+                classes(AppStyles.dialogTitle)
+
+            }) {
 
                 Text("Registrar falta")
             }
 
 
-            /* USUARIO */
+            Div({
 
-            Select({
-
-                classes(AppStyles.loginInput)
-
-                onChange {
-
-                    selectedUserId = it.target.value
-                }
+                classes(AppStyles.dialogForm)
 
             }) {
 
-                Option("") {
+                /* USUARIO */
 
-                    Text("Seleccionar usuario")
-                }
+                Select({
 
-                usuarios.forEach {
+                    classes(AppStyles.dialogInput)
 
-                    Option(it.id.toString()) {
+                    if (userError) {
+                        classes(AppStyles.dialogInputError)
+                    }
 
-                        Text(it.username)
+                    onChange {
+
+                        selectedUserId = it.target.value
+
+                        userError = false
+                    }
+
+                }) {
+
+                    Option("") {
+                        Text("Seleccionar usuario")
+                    }
+
+                    usuarios.forEach {
+
+                        Option(it.id.toString()) {
+                            Text(it.username)
+                        }
                     }
                 }
+
+
+                if (userError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona un usuario")
+                    }
+                }
+
+
+                /* FECHA */
+
+                Input(InputType.Date, attrs = {
+
+                    classes(AppStyles.dialogInput)
+
+                    if (fechaError) {
+                        classes(AppStyles.dialogInputError)
+                    }
+
+                    value(fecha)
+
+                    onInput {
+
+                        fecha = it.value
+
+                        fechaError = false
+                    }
+                })
+
+
+                if (fechaError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona una fecha")
+                    }
+                }
+
+
+                /* TIPO */
+
+                Select({
+
+                    classes(AppStyles.dialogInput)
+
+                    onChange {
+
+                        tipo = it.target.value
+                    }
+
+                }) {
+
+                    Option("retraso") { Text("Retraso") }
+
+                    Option("justificada") { Text("Justificada") }
+
+                    Option("injustificada") { Text("Injustificada") }
+                }
+
+
+                /* DESCRIPCIÓN */
+
+                Input(InputType.Text, attrs = {
+
+                    classes(AppStyles.dialogInput)
+
+                    placeholder("Descripción")
+
+                    value(descripcion)
+
+                    onInput {
+
+                        descripcion = it.value
+                    }
+                })
             }
 
-
-            /* FECHA */
-
-            Input(InputType.Date, attrs = {
-
-                classes(AppStyles.loginInput)
-
-                value(fecha)
-
-                onInput {
-
-                    fecha = it.value
-                }
-            })
-
-
-            /* TIPO */
-
-            Select({
-
-                classes(AppStyles.loginInput)
-
-                onChange {
-
-                    tipo = it.target.value
-                }
-
-            }) {
-
-                Option("retraso") {
-                    Text("Retraso")
-                }
-
-                Option("justificada") {
-                    Text("Justificada")
-                }
-
-                Option("injustificada") {
-                    Text("Injustificada")
-                }
-            }
-
-
-            /* DESCRIPCIÓN */
-
-            Input(InputType.Text, attrs = {
-
-                classes(AppStyles.loginInput)
-
-                placeholder("Descripción")
-
-                value(descripcion)
-
-                onInput {
-
-                    descripcion = it.value
-                }
-            })
-
-
-            /* BOTONES */
 
             Div({
 
-                style {
-
-                    display(DisplayStyle.Flex)
-
-                    gap(10.px)
-
-                    marginTop(16.px)
-                }
+                classes(AppStyles.dialogActions)
 
             }) {
 
-                Button({
+                Button(attrs = {
 
-                    classes(AppStyles.primaryButton)
+                    classes(AppStyles.secondaryButton)
 
                     onClick {
 
-                        if (selectedUserId.isEmpty()) return@onClick
+                        onCancel()
+                    }
+
+                }) {
+
+                    Text("Cancelar")
+                }
+
+
+                Button(attrs = {
+
+                    classes(AppStyles.primaryButton)
+
+                    if (
+                        selectedUserId.isEmpty()
+                        || fecha.isEmpty()
+                    ) {
+                        disabled()
+                        classes(AppStyles.primaryButtonDisabled)
+                    }
+
+                    onClick {
+
+                        userError = selectedUserId.isEmpty()
+
+                        fechaError = fecha.isEmpty()
+
+                        if (userError || fechaError)
+                            return@onClick
+
 
                         scope.launch {
 
@@ -182,10 +246,12 @@ fun CreateFaltaDialog(
                                 window.localStorage.getItem("token")
                                     ?: return@launch
 
+
                             val headers = Headers()
 
                             headers.append("Authorization", "Bearer $token")
                             headers.append("Content-Type", "application/json")
+
 
                             val bodyObject = js("{}")
 
@@ -193,19 +259,19 @@ fun CreateFaltaDialog(
                             bodyObject["tipo"] = tipo
                             bodyObject["descripcion"] = descripcion
 
+
                             val requestInit = js("{}")
 
                             requestInit.method = "POST"
                             requestInit.headers = headers
                             requestInit.body = JSON.stringify(bodyObject)
 
+
                             val response = window.fetch(
-
-                                "http://127.0.0.1:8080/faltas/$selectedUserId",
-
+                                "${ApiClient.BASE_URL}/faltas/$selectedUserId",
                                 requestInit
-
                             ).await()
+
 
                             if (response.ok) {
 
@@ -231,21 +297,6 @@ fun CreateFaltaDialog(
                 }) {
 
                     Text("Guardar")
-                }
-
-
-                Button({
-
-                    classes(AppStyles.secondaryButton)
-
-                    onClick {
-
-                        onCancel()
-                    }
-
-                }) {
-
-                    Text("Cancelar")
                 }
             }
         }

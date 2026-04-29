@@ -1,6 +1,7 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.components.*
 import com.empresa.adminpanel.models.Falta
 import com.empresa.adminpanel.models.Usuario
@@ -97,7 +98,7 @@ fun FaltasScreen() {
 
 
             val url =
-                "http://127.0.0.1:8080/faltas$queryString"
+                "${ApiClient.BASE_URL}/faltas$queryString"
 
 
             val requestInit = js("{}")
@@ -150,7 +151,7 @@ fun FaltasScreen() {
 
             val response =
                 window.fetch(
-                    "http://127.0.0.1:8080/admin/usuarios",
+                    "${ApiClient.BASE_URL}/admin/usuarios",
                     requestInit
                 ).await()
 
@@ -187,7 +188,7 @@ fun FaltasScreen() {
             requestInit.headers = headers
 
             window.fetch(
-                "http://127.0.0.1:8080/faltas/$id",
+                "${ApiClient.BASE_URL}/faltas/$id",
                 requestInit
             ).await()
 
@@ -421,14 +422,13 @@ fun FaltasScreen() {
 
                 classes(
                     AppStyles.tableContainer,
-                    AppStyles.tableWrapperCentered
                 )
 
             }) {
 
                 Table({
 
-                    classes(AppStyles.table)
+                    classes(AppStyles.tableCard)
 
                 }) {
 

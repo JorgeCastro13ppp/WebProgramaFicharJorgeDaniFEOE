@@ -1,6 +1,7 @@
 package com.empresa.adminpanel.components
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -11,6 +12,8 @@ import org.w3c.fetch.Headers
 import org.w3c.files.File
 import org.w3c.xhr.FormData
 import style.AppStyles
+
+import org.jetbrains.compose.web.attributes.disabled
 
 @Composable
 fun CreateDocumentoDialog(
@@ -31,13 +34,23 @@ fun CreateDocumentoDialog(
 
     var loading by remember { mutableStateOf(false) }
 
+
+    /* VALIDACIÓN VISUAL */
+
+    var userError by remember { mutableStateOf(false) }
+
+    var fileError by remember { mutableStateOf(false) }
+
+
     val scope = rememberCoroutineScope()
 
 
     fun subirDocumento() {
 
-        if (selectedUserId.isEmpty() || selectedFile == null)
-            return
+        userError = selectedUserId.isEmpty()
+        fileError = selectedFile == null
+
+        if (userError || fileError) return
 
         scope.launch {
 
@@ -67,7 +80,7 @@ fun CreateDocumentoDialog(
 
 
             val uploadResponse = window.fetch(
-                "http://127.0.0.1:8080/upload?userId=$selectedUserId",
+                "${ApiClient.BASE_URL}/upload?userId=$selectedUserId",
                 requestUpload
             ).await()
 
@@ -85,8 +98,6 @@ fun CreateDocumentoDialog(
 
             val rutaArchivo = json.url as String
 
-
-            /* SEGUNDO PASO: registrar documento en BD */
 
             val documentObject = js("{}")
 
@@ -112,7 +123,7 @@ fun CreateDocumentoDialog(
 
 
             val saveResponse = window.fetch(
-                "http://127.0.0.1:8080/documentos",
+                "${ApiClient.BASE_URL}/documentos",
                 requestDocument
             ).await()
 
@@ -141,130 +152,138 @@ fun CreateDocumentoDialog(
 
         }) {
 
-            H3 {
+            H3({
+
+                classes(AppStyles.dialogTitle)
+
+            }) {
 
                 Text("Subir documento")
             }
 
 
-            /* USUARIO */
-
-            Select({
-
-                classes(AppStyles.loginInput)
-
-                onChange {
-
-                    selectedUserId =
-                        it.target.value
-                }
-
-            }) {
-
-                Option("") {
-
-                    Text("Seleccionar usuario")
-                }
-
-                usuarios.forEach {
-
-                    Option(it.id.toString()) {
-
-                        Text(it.username)
-                    }
-                }
-            }
-
-
-            /* TIPO DOCUMENTO */
-
-            Select({
-
-                classes(AppStyles.loginInput)
-
-                onChange {
-
-                    tipo = it.target.value
-                }
-
-            }) {
-
-                Option("nomina") {
-
-                    Text("Nómina")
-                }
-
-                Option("epis") {
-
-                    Text("EPIs")
-                }
-
-                Option("formacion") {
-
-                    Text("Formación")
-                }
-
-                Option("reconocimiento") {
-
-                    Text("Reconocimiento")
-                }
-            }
-
-
-            /* ARCHIVO */
-
-            Input(InputType.File, attrs = {
-
-                classes(AppStyles.loginInput)
-
-                onInput {
-
-                    val input =
-                        it.target as org.w3c.dom.HTMLInputElement
-
-                    val files = input.files
-
-                    if (files != null && files.length > 0) {
-
-                        selectedFile = files.item(0)
-                    }
-                }
-            })
-
-
-            /* BOTONES */
-
             Div({
 
-                classes(AppStyles.dialogButtons)
+                classes(AppStyles.dialogForm)
 
             }) {
 
-                Button({
+                /* USUARIO */
 
-                    classes(AppStyles.primaryButton)
+                Select({
 
-                    onClick {
+                    classes(AppStyles.dialogInput)
 
-                        subirDocumento()
+                    if (userError) {
+
+                        classes(AppStyles.dialogInputError)
+                    }
+
+                    onChange {
+
+                        selectedUserId = it.target.value
+
+                        userError = false
                     }
 
                 }) {
 
-                    if (loading) {
+                    Option("") {
 
-                        Div({
+                        Text("Seleccionar usuario")
+                    }
 
-                            classes(AppStyles.loader)
+                    usuarios.forEach {
 
-                        }) {}
+                        Option(it.id.toString()) {
 
-                    } else {
-
-                        Text("Subir")
+                            Text(it.username)
+                        }
                     }
                 }
 
+                if (userError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona un usuario")
+                    }
+                }
+
+
+                /* TIPO DOCUMENTO */
+
+                Select({
+
+                    classes(AppStyles.dialogInput)
+
+                    onChange {
+
+                        tipo = it.target.value
+                    }
+
+                }) {
+
+                    Option("nomina") { Text("Nómina") }
+
+                    Option("epis") { Text("EPIs") }
+
+                    Option("formacion") { Text("Formación") }
+
+                    Option("reconocimiento") { Text("Reconocimiento") }
+                }
+
+
+                /* ARCHIVO */
+
+                Input(InputType.File, attrs = {
+
+                    classes(AppStyles.dialogInput)
+
+                    if (userError) {
+
+                        classes(AppStyles.dialogInputError)
+                    }
+
+                    onInput {
+
+                        val input =
+                            it.target as org.w3c.dom.HTMLInputElement
+
+                        val files = input.files
+
+                        if (files != null && files.length > 0) {
+
+                            selectedFile = files.item(0)
+
+                            fileError = false
+                        }
+                    }
+                })
+
+                if (fileError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona un archivo")
+                    }
+                }
+            }
+
+
+            Div({
+
+                classes(AppStyles.dialogActions)
+
+            }) {
 
                 Button({
 
@@ -278,6 +297,43 @@ fun CreateDocumentoDialog(
                 }) {
 
                     Text("Cancelar")
+                }
+
+
+                Button(attrs = {
+
+                    classes(AppStyles.primaryButton)
+
+                    if (
+                        selectedUserId.isEmpty()
+                        || selectedFile == null
+                        || loading
+                    ) {
+
+                        disabled()
+
+                        classes(AppStyles.primaryButtonDisabled)
+                    }
+
+                    onClick {
+
+                        subirDocumento()
+                    }
+
+                }) {
+
+                    if (loading) {
+
+                        Div({
+
+                            classes(AppStyles.loaderSmall)
+
+                        }) {}
+
+                    } else {
+
+                        Text("Subir")
+                    }
                 }
             }
         }

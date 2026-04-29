@@ -2,7 +2,6 @@ package style
 
 import org.jetbrains.compose.web.ExperimentalComposeWebApi
 import org.jetbrains.compose.web.css.*
-import org.jetbrains.compose.web.css.keywords.auto
 
 object AppStyles : StyleSheet() {
 
@@ -15,109 +14,19 @@ object AppStyles : StyleSheet() {
         }
 
         "html, body" style {
+            fontFamily("Inter", "system-ui", "sans-serif")
             margin(0.px)
             padding(0.px)
             height(100.percent)
         }
+
     }
 
-    /* Layout raíz */
-
-    val layout by style {
-        display(DisplayStyle.Flex)
-        height(100.vh)
-        fontFamily("Arial", "sans-serif")
-        overflow("hidden")
-    }
-
-    /* Sidebar */
-
-    val sidebar by style {
-        width(220.px)
-        height(100.percent)
-        backgroundColor(Color("#386bff"))
-        color(Color.white)
-        padding(20.px)
-    }
-
-    val sidebarTitle by style {
-        fontSize(22.px)
-        fontWeight("bold")
-        marginBottom(20.px)
-    }
-
-    val sidebarButton by style {
-
-        display(DisplayStyle.Flex)
-        alignItems(AlignItems.Center)
-
-        width(100.percent)
-        padding(12.px)
-        marginBottom(8.px)
-
-        backgroundColor(Color.transparent)
-        color(Color.white)
-
-        borderRadius(8.px)
-        border { style(LineStyle.None) }
-
-        fontSize(15.px)
-        cursor("pointer")
-
-        property("transition", "0.15s ease")
-
-        self + hover style {
-            backgroundColor(Color("#1CB7FF"))
-            property("transform", "translateX(4px)")
-        }
-    }
-
-    val sidebarButtonActive by style {
-        backgroundColor(Color("#1CB7FF"))
-        fontWeight("bold")
-    }
-
-    val sidebarIcon by style {
-        width(18.px)
-        height(18.px)
-        marginRight(10.px)
-        property("filter", "brightness(0) invert(1)")
-    }
-
-    /* Content */
-
-    val content by style {
-        flexGrow(1)
-        height(100.percent)
-        overflowY("auto")
-
-        padding(16.px, 24.px)
-
-        backgroundColor(Color("#f4f6fb"))
-    }
 
     val title by style {
         fontSize(26.px)
         fontWeight("bold")
         marginBottom(20.px)
-    }
-
-    /* Topbar */
-
-    val topbar by style {
-
-        backgroundColor(Color.white)
-
-        height(64.px)
-
-        display(DisplayStyle.Flex)
-        alignItems(AlignItems.Center)
-        justifyContent(JustifyContent.SpaceBetween)
-
-        paddingLeft(24.px)
-        paddingRight(24.px)
-
-        property("border-bottom", "1px solid #ddd")
     }
 
     val username by style {
@@ -161,70 +70,80 @@ object AppStyles : StyleSheet() {
 
     val loginContainer by style {
 
+        minHeight(100.vh)
+
         display(DisplayStyle.Flex)
-        height(100.vh)
 
         justifyContent(JustifyContent.Center)
+
         alignItems(AlignItems.Center)
 
-        backgroundColor(Color("#f4f6fb"))
+        property(
+            "background",
+            "linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%)"
+        )
     }
 
     val loginCard by style {
 
+        width(100.percent)
+
+        maxWidth(420.px)
+
         backgroundColor(Color.white)
 
-        padding(42.px)
+        borderRadius(16.px)
 
-        borderRadius(14.px)
+        padding(36.px)
 
-        width(340.px)
+        display(DisplayStyle.Flex)
 
-        property("box-shadow", "0 12px 32px rgba(0,0,0,0.08)")
+        flexDirection(FlexDirection.Column)
+
+        gap(18.px)
+
+        property("box-shadow", "0 4px 18px rgba(0,0,0,0.06)")
     }
 
     val loginTitle by style {
 
-        fontSize(24.px)
+        fontSize(26.px)
+
         fontWeight("600")
 
-        marginBottom(26.px)
+        color(Color("#0F172A"))
 
-        color(Color("#1C56FF"))
+        textAlign("center")
 
-        property("letter-spacing", "0.3px")
-        property("text-align", "center")
+        marginBottom(6.px)
     }
 
     val loginInput by style {
 
         width(100.percent)
 
-        padding(12.px)
-        marginBottom(18.px)
+        padding(14.px, 16.px)
 
-        borderRadius(8.px)
+        borderRadius(10.px)
 
         border {
-            style(LineStyle.Solid)
+
             width(1.px)
-            color(Color("#D0D7DE"))
+
+            style(LineStyle.Solid)
+
+            color(Color("#CBD5E1"))
         }
 
-        fontSize(14.px)
+        fontSize(15.px)
 
-        property("transition", "0.15s ease")
+        property("transition", "border 0.2s ease")
 
-        self + focus style {
+        focus {
 
             outline("none")
 
-            border {
-                color(Color("#1C56FF"))
-                width(1.5.px)
-            }
-
-            property("box-shadow", "0 0 0 2px rgba(28,86,255,0.15)")
+            property("border-color", "#2563EB")
         }
     }
 
@@ -232,42 +151,26 @@ object AppStyles : StyleSheet() {
 
         width(100.percent)
 
-        padding(13.px)
+        padding(14.px)
 
-        backgroundColor(Color("#1C56FF"))
+        backgroundColor(Color("#2d3444"))
+
         color(Color.white)
 
-        borderRadius(8.px)
+        borderRadius(10.px)
 
-        border { style(LineStyle.None) }
+        border(0.px)
 
-        fontSize(15.px)
-        fontWeight("500")
+        fontWeight("600")
 
         cursor("pointer")
 
-        property("transition", "0.15s ease")
+        property("transition", "background 0.2s ease")
 
-        self + hover style {
-            backgroundColor(Color("#1747D1"))
+        self + not(disabled) + hover style {
+
+            backgroundColor(Color("#0F172A"))
         }
-
-        width(100.percent)
-    }
-
-    /* Screen transition */
-
-    val screenFade by style {
-
-        property("animation", "fadeIn 0.25s ease")
-
-        property(
-            "@keyframes fadeIn",
-            """
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0px); }
-            """
-        )
     }
 
     /* Loader */
@@ -310,54 +213,68 @@ object AppStyles : StyleSheet() {
 
         display(DisplayStyle.Grid)
 
-        property("grid-template-columns", "repeat(auto-fit, minmax(220px, 1fr))")
+        property(
+            "grid-template-columns",
+            "repeat(auto-fit, minmax(220px, 1fr))"
+        )
 
         gap(20.px)
 
-        marginTop(20.px)
+        marginTop(10.px)
     }
 
     val statCard by style {
 
-        backgroundColor(Color.white)
-
-        borderRadius(12.px)
+        position(Position.Relative)
 
         padding(22.px)
 
+        borderRadius(16.px)
+
+        backgroundColor(Color.white)
+
         property("box-shadow", "0 6px 18px rgba(0,0,0,0.05)")
 
-        property("transition", "0.15s ease")
+        display(DisplayStyle.Flex)
+
+        flexDirection(FlexDirection.Column)
+
+        gap(6.px)
+
+        property(
+            "transition",
+            "transform 0.15s ease, box-shadow 0.15s ease"
+        )
+
+        self + hover style {
+
+            property("transform", "translateY(-3px)")
+
+            property(
+                "box-shadow",
+                "0 10px 26px rgba(0,0,0,0.08)"
+            )
+        }
     }
 
     val statTitle by style {
 
         fontSize(14.px)
 
-        color(Color("#6b7280"))
+        color(Color("#64748B"))
 
-        marginBottom(8.px)
+        fontWeight("500")
     }
 
     val statValue by style {
 
         fontSize(28.px)
 
-        fontWeight("bold")
+        fontWeight("700")
 
-        color(Color("#111827"))
+        color(Color("#0F172A"))
     }
 
-    val statAccent by style {
-
-        height(4.px)
-
-        borderRadius(6.px)
-
-        marginBottom(10.px)
-
-        backgroundColor(Color("#386bff"))
-    }
 
     val statAccentBlue by style {
         height(4.px)
@@ -386,103 +303,20 @@ object AppStyles : StyleSheet() {
         marginBottom(10.px)
         backgroundColor(Color("#ef4444"))
     }
-
-    val dialogOverlay by style {
-
-        position(Position.Fixed)
-
-        top(0.px)
-        left(0.px)
-
-        width(100.percent)
-        height(100.percent)
-
-        backgroundColor(Color("#ffffff"))
-
-        display(DisplayStyle.Flex)
-
-        justifyContent(JustifyContent.Center)
-        alignItems(AlignItems.Center)
-
-        property("z-index", "999")
-    }
-
-    val dialogBox by style {
-
-        backgroundColor(Color.white)
-
-        padding(28.px)
-
-        borderRadius(12.px)
-
-        minWidth(280.px)
-
-        property("box-shadow", "0 10px 30px rgba(0,0,0,0.15)")
-    }
-
-    val dialogButtons by style {
-
-        display(DisplayStyle.Flex)
-
-        justifyContent(JustifyContent.Center)
-
-        marginTop(18.px)
-
-        gap(10.px)
-    }
-
-    val dialogCancel by style {
-
-        width(50.percent)
-
-        padding(8.px, 14.px)
-
-        backgroundColor(Color("#9ca3af"))
-
-        color(Color.white)
-
+    val statAccentYellow by style {
+        height(4.px)
         borderRadius(6.px)
-
-        border { style(LineStyle.None) }
-
-        cursor("pointer")
-
-        property("transition", "0.15s ease")
-
-        self + hover style {
-
-            backgroundColor(Color("#737780"))
-        }
+        marginBottom(10.px)
+        backgroundColor(Color("#FFFF00"))
     }
 
-    val dialogConfirm by style {
 
-        width(50.percent)
-
-        padding(8.px, 14.px)
-
-        backgroundColor(Color("#19D600"))
-
-        color(Color.white)
-
-        borderRadius(6.px)
-
-        border { style(LineStyle.None) }
-
-        cursor("pointer")
-
-        property("transition", "0.15s ease")
-
-        self + hover style {
-
-            backgroundColor(Color("#179900"))
-        }
-    }
 
     val deleteButton by style {
 
-
+        display( DisplayStyle.Flex)
         alignItems(AlignItems.Center)
+        property("justify-self", "center")
 
         gap(6.px)
 
@@ -506,39 +340,16 @@ object AppStyles : StyleSheet() {
             backgroundColor(Color("#A8331D"))
         }
 
-        width(75.percent)
 
     }
 
-    val deleteIcon by style {
 
-        width(14.px)
-        height(14.px)
-
-        property("filter", "brightness(0) invert(1)")
-    }
-
-    val tableContainer by style {
-
-        maxWidth(1000.px)
-
-        marginLeft(auto as CSSNumeric)
-
-        marginRight(auto as CSSNumeric)
-
-        backgroundColor(Color.white)
-
-        borderRadius(16.px)
-
-        padding(24.px)
-
-        property("box-shadow", "0 4px 18px rgba(0,0,0,0.04)")
-    }
 
     val table by style {
 
         width(100.percent)
 
+        display(DisplayStyle.Flex)
         textAlign("center")
         alignItems("center")
 
@@ -547,36 +358,7 @@ object AppStyles : StyleSheet() {
         property("border-spacing", "0 12px")
     }
 
-    val tableHeaderRow by style {
 
-        backgroundColor(Color("#f8fafc"))
-    }
-
-    val tableHeader by style {
-
-
-        color(Color("#6b7280"))
-
-        padding(12.px)
-
-        property("border-bottom", "1px solid #e5e7eb")
-    }
-
-    val tableRow by style {
-
-        backgroundColor(Color("#F8FAFC"))
-
-        borderRadius(12.px)
-    }
-
-    val tableCell by style {
-
-        padding(14.px)
-
-        fontSize(14.px)
-
-        property("vertical-align", "middle")
-    }
 
     val roleBadge by style {
 
@@ -638,87 +420,6 @@ object AppStyles : StyleSheet() {
         }
     }
 
-    val addButton by style {
-
-        padding(10.px, 16.px)
-
-        backgroundColor(Color("#19D600"))
-
-        color(Color.white)
-
-        borderRadius(8.px)
-
-        border {
-            style(LineStyle.None)
-        }
-
-        fontSize(14.px)
-
-        fontWeight("500")
-
-        cursor("pointer")
-
-        property("transition", "0.15s ease")
-        property("display", "flex")
-        property("align-items", "center")
-
-        self + hover style {
-
-            backgroundColor(Color("#179900"))
-        }
-    }
-
-    val addIcon by style {
-
-        width(24.px)
-        height(24.px)
-        marginRight(8.px)
-
-        property("filter", "brightness(0) invert(1)")
-    }
-
-    val toast by style {
-
-        position(Position.Fixed)
-
-        bottom(40.px)
-
-        left(50.percent)
-
-        property("transform", "translateX(-50%)")
-
-        backgroundColor(Color("#16a34a"))
-
-        color(Color.white)
-
-        padding(18.px, 28.px)
-
-        borderRadius(12.px)
-
-        fontSize(16.px)
-
-        fontWeight("600")
-
-        property("box-shadow", "0 8px 26px rgba(0,0,0,0.18)")
-
-        property("animation", "fadeToast 0.35s ease")
-
-        property(
-            "@keyframes fadeToast",
-            """
-        from {
-            opacity: 0;
-            transform: translate(-50%, 12px);
-        }
-        to {
-            opacity: 1;
-            transform: translate(-50%, 0px);
-        }
-        """
-        )
-
-    }
-
     val badgeFichar by style {
 
         padding(6.px, 12.px)
@@ -731,29 +432,7 @@ object AppStyles : StyleSheet() {
     }
 
 
-    val badgeEntrada by style {
 
-        backgroundColor(Color("#DCFCE7"))
-
-        color(Color("#166534"))
-    }
-
-
-    val badgeSalida by style {
-
-        backgroundColor(Color("#FEE2E2"))
-
-        color(Color("#991B1B"))
-    }
-
-    val tableWrapperCentered by style {
-
-        maxWidth(900.px)
-
-        marginLeft(auto as CSSNumeric)
-
-        marginRight(auto as CSSNumeric)
-    }
     val secondaryButton by style {
 
         display(DisplayStyle.Flex)
@@ -924,6 +603,8 @@ object AppStyles : StyleSheet() {
 
         height(6.vh)
         textAlign("center")
+        //display(DisplayStyle.Flex)
+        justifyContent(JustifyContent.Center)
     }
 
     val actionButtonsGroup by style {
@@ -992,6 +673,9 @@ object AppStyles : StyleSheet() {
 
 
     val openButton by style {
+        display(DisplayStyle.Flex)
+
+        gap(6.px)
 
         backgroundColor(Color("#3b82f6"))
         color(Color.white)
@@ -1082,4 +766,742 @@ object AppStyles : StyleSheet() {
         }
     }
 
+
+
+    val filtersRow by style {
+        display(DisplayStyle.Flex)
+        gap(12.px)
+    }
+
+    val filterButton by style {
+        padding(10.px, 18.px)
+        borderRadius(8.px)
+        backgroundColor(Color("#e5e7eb"))
+        border(0.px)
+        cursor("pointer")
+    }
+
+    val filterActive by style {
+        padding(10.px, 18.px)
+        borderRadius(8.px)
+        backgroundColor(Color("#3b82f6"))
+        color(Color.white)
+        border(0.px)
+        cursor("pointer")
+    }
+
+    val input by style {
+        padding(8.px)
+        borderRadius(8.px)
+        border {
+            style(LineStyle.Solid)
+            width(1.px)
+            color(Color("#d1d5db"))
+        }
+    }
+
+    val card by style {
+        backgroundColor(Color.white)
+        borderRadius(14.px)
+        padding(20.px)
+        property("box-shadow", "0 4px 12px rgba(0,0,0,0.06)")
+    }
+
+    val successButton by style {
+        display(DisplayStyle.Flex)
+        gap(6.px)
+        alignItems(AlignItems.Center)
+        padding(6.px, 12.px)
+        borderRadius(6.px)
+        backgroundColor(Color("#16a34a"))
+        color(Color.white)
+        border(0.px)
+        cursor("pointer")
+    }
+
+    val dangerButton by style {
+        display(DisplayStyle.Flex)
+        gap(6.px)
+        alignItems(AlignItems.Center)
+        padding(6.px, 12.px)
+        borderRadius(6.px)
+        backgroundColor(Color("#dc2626"))
+        color(Color.white)
+        border(0.px)
+        cursor("pointer")
+    }
+
+
+    val emptyState by style {
+        color(Color("#6b7280"))
+        fontSize(14.px)
+        marginTop(16.px)
+    }
+
+    val badgeSuccess by style {
+        backgroundColor(rgb(40, 167, 69))
+        color(Color.white)
+        padding(4.px, 10.px)
+        borderRadius(6.px)
+        fontSize(12.px)
+    }
+
+    val rowWarning by style {
+
+        backgroundColor(rgb(255, 248, 220))
+    }
+
+    val dialogOverlay by style {
+
+        position(Position.Fixed)
+
+        top(0.px)
+        left(0.px)
+
+        width(100.percent)
+        height(100.percent)
+
+        display(DisplayStyle.Flex)
+
+        justifyContent(JustifyContent.Center)
+        alignItems(AlignItems.Center)
+
+        backgroundColor(rgba(0, 0, 0, 0.45))
+
+        property("backdrop-filter", "blur(4px)")
+
+        property("z-index", "999")
+    }
+
+    val dialogBox by style {
+
+        backgroundColor(Color("#FFFFFF"))
+
+        padding(26.px)
+
+        borderRadius(14.px)
+
+        minWidth(320.px)
+
+        maxWidth(420.px)
+
+        property(
+            "box-shadow",
+            "0 10px 35px rgba(0,0,0,0.18)"
+        )
+
+        animation("dialogFadeIn") {
+            duration(0.18.s)
+        }
+    }
+
+    val dialogMessage by style {
+
+        fontSize(16.px)
+
+        color(Color("#1C1C1C"))
+
+        textAlign("center")
+
+        marginBottom(6.px)
+    }
+
+    val dialogActions by style {
+
+        display(DisplayStyle.Flex)
+
+        justifyContent(JustifyContent.Center)
+
+        gap(14.px)
+
+        marginTop(22.px)
+
+        flexWrap(FlexWrap.Wrap)
+    }
+
+    val dialogTitle by style {
+
+        fontSize(20.px)
+
+        fontWeight("600")
+
+        color(Color("#1F3E73"))
+
+        marginBottom(18.px)
+
+        textAlign("center")
+    }
+
+    val dialogForm by style {
+
+        display(DisplayStyle.Flex)
+
+        flexDirection(FlexDirection.Column)
+
+        gap(14.px)
+
+        marginBottom(22.px)
+    }
+
+    val dialogInput by style {
+
+        padding(10.px)
+
+        borderRadius(8.px)
+
+        border {
+
+            width = 1.px
+            style = LineStyle.Solid
+            color(Color("#D1D5DB"))
+        }
+
+        fontSize(14.px)
+
+        width(100.percent)
+
+        backgroundColor(Color.white)
+    }
+
+    val loaderSmall by style {
+
+        width(16.px)
+
+        height(16.px)
+
+        borderRadius(50.percent)
+
+        border {
+
+            width = 2.px
+            style = LineStyle.Solid
+            color(Color("#FFFFFF"))
+        }
+
+        property("border-top", "2px solid transparent")
+
+        property("animation", "spin 0.6s linear infinite")
+    }
+
+    val dialogInputError by style {
+
+        border {
+
+            width = 1.5.px
+            style = LineStyle.Solid
+            color(Color("#DC2626"))
+        }
+    }
+
+    val inputErrorText by style {
+
+        fontSize(12.px)
+
+        color(Color("#DC2626"))
+
+        marginTop(4.px)
+    }
+
+    val primaryButtonDisabled by style {
+
+        opacity(0.6)
+
+        property("cursor", "not-allowed")
+    }
+
+    val screenHeaderContainer by style {
+
+        display(DisplayStyle.Flex)
+
+        justifyContent(JustifyContent.SpaceBetween)
+
+        alignItems(AlignItems.Center)
+
+        marginBottom(28.px)
+
+        flexWrap(FlexWrap.Wrap)
+
+        gap(16.px)
+    }
+
+
+    val screenHeaderLeft by style {
+
+        display(DisplayStyle.Flex)
+
+        alignItems(AlignItems.Center)
+
+        gap(16.px)
+
+        flexWrap(FlexWrap.Wrap)
+    }
+
+
+    val screenHeaderRight by style {
+
+        display(DisplayStyle.Flex)
+
+        alignItems(AlignItems.Center)
+
+        gap(12.px)
+
+        flexWrap(FlexWrap.Wrap)
+    }
+
+    val topbar by style {
+
+        display(DisplayStyle.Flex)
+
+        justifyContent(JustifyContent.SpaceBetween)
+
+        alignItems(AlignItems.Center)
+
+        padding(18.px, 26.px)
+
+        backgroundColor(Color("#FFFFFF"))
+
+        property("border-bottom", "1px solid #E2E8F0")
+
+        flexWrap(FlexWrap.Wrap)
+
+        gap(12.px)
+    }
+
+
+    val topbarTitle by style {
+
+        fontSize(20.px)
+
+        fontWeight("600")
+
+        color(Color("#1F3E73"))
+    }
+
+
+    val topbarRight by style {
+
+        display(DisplayStyle.Flex)
+
+        alignItems(AlignItems.Center)
+
+        gap(20.px)
+
+        flexWrap(FlexWrap.Wrap)
+    }
+
+
+    val topbarClock by style {
+
+        fontSize(14.px)
+
+        color(Color("#64748B"))
+    }
+
+    val screenContainer by style {
+
+        display(DisplayStyle.Flex)
+
+        flexDirection(FlexDirection.Column)
+
+        gap(12.px)
+
+        width(100.percent)
+    }
+
+    val statsGrid by style {
+
+        display(DisplayStyle.Grid)
+
+        property(
+            "grid-template-columns",
+            "repeat(auto-fit, minmax(220px, 1fr))"
+        )
+
+        gap(20.px)
+
+        marginBottom(12.px)
+    }
+
+    val tableContainer by style {
+
+        width(100.percent)
+
+        backgroundColor(Color.white)
+
+        borderRadius(12.px)
+
+        padding(20.px)
+
+        property("box-shadow", "0 1px 3px rgba(0,0,0,0.05)")
+
+        property("overflow-x", "auto")
+    }
+
+    val tableFlat by style {
+
+        width(100.percent)
+
+        textAlign("center")
+
+        property("border-collapse", "collapse")
+    }
+
+    val tableCard by style {
+
+        width(100.percent)
+
+        textAlign("center")
+
+        property("border-collapse", "separate")
+
+        property("border-spacing", "0 12px")
+    }
+
+    val loginLogo by style {
+
+        width(64.px)
+
+        marginBottom(16.px)
+
+        property("margin-left", "auto")
+
+        property("margin-right", "auto")
+
+        display(DisplayStyle.Block)
+    }
+
+    val loginError by style {
+
+        color(Color("#DC2626"))
+
+        fontSize(14.px)
+
+        textAlign("center")
+    }
+
+    val deleteIcon by style {
+        width(16.px)
+        height(16.px)
+    }
+
+
+    val layout by style {
+
+        display(DisplayStyle.Flex)
+    }
+
+
+    val content by style {
+
+        flexGrow(1)
+
+        padding(24.px)
+    }
+
+
+    /*
+    ========================
+    SIDEBAR DESKTOP
+    ========================
+    */
+
+    val sidebarDesktop by style {
+
+        backgroundColor(Color("#2d3444"))
+
+        color(Color.white)
+
+        width(240.px)
+
+        minHeight(100.vh)
+
+        display(DisplayStyle.Flex)
+
+        flexDirection(FlexDirection.Column)
+
+        padding(20.px)
+
+        gap(8.px)   // ← aquí
+
+        property("transition", "all 0.25s ease")
+    }
+
+
+    /*
+    ========================
+    SIDEBAR TABLET
+    (icon-only)
+    ========================
+    */
+
+    val sidebarTablet by style {
+
+        backgroundColor(Color("#2d3444"))
+
+        color(Color.white)
+
+        width(72.px)
+
+        minHeight(100.vh)
+
+        display(DisplayStyle.Flex)
+
+        flexDirection(FlexDirection.Column)
+
+        padding(25.px)
+
+        property("transition", "width 0.25s ease")
+    }
+
+
+    /*
+    ========================
+    SIDEBAR MOBILE DRAWER
+    (aparece desde derecha)
+    ========================
+    */
+
+    val sidebarMobile by style {
+
+        position(Position.Fixed)
+
+        top(0.px)
+
+        left((-260).px)
+
+        width(260.px)
+
+        height(100.vh)
+
+        backgroundColor(Color("#2d3444"))
+
+        color(Color.white)
+
+        display(DisplayStyle.Flex)
+
+        flexDirection(FlexDirection.Column)
+
+        padding(20.px)
+
+        property("z-index", "2000")
+
+        property("transition", "left 0.25s ease")
+    }
+
+
+    /*
+    ========================
+    SIDEBAR MOBILE OPEN
+    ========================
+    */
+
+    val sidebarMobileOpen by style {
+
+        property("left", "0px")
+    }
+
+
+    /*
+    ========================
+    OVERLAY BLUR BACKGROUND
+    ========================
+    */
+
+    val sidebarOverlay by style {
+
+        position(Position.Fixed)
+
+        top(0.px)
+
+        left(0.px)
+
+        width(100.vw)
+
+        height(100.vh)
+
+        backgroundColor(Color("rgba(0,0,0,0.35)"))
+
+        property("backdrop-filter", "blur(4px)")
+
+        property("z-index", "1500")
+    }
+
+
+    /*
+    ========================
+    SIDEBAR BUTTON
+    (no borde, hover moderno)
+    ========================
+    */
+
+    val sidebarButton by style {
+
+        display(DisplayStyle.Flex)
+
+        alignItems(AlignItems.Center)
+
+        property("align-self", "stretch")
+
+        property("box-sizing", "border-box")
+
+        gap(14.px)
+
+        padding(14.px, 18.px)
+
+        borderRadius(12.px)
+
+        backgroundColor(Color.transparent)
+
+        color(Color.white)
+
+        cursor("pointer")
+
+        property("transition", "all 0.18s ease")
+
+        self + hover style {
+
+            backgroundColor(Color("#1E293B"))
+
+            property("box-shadow", "inset 3px 0 0 #3B82F6")
+
+            property("transform", "translateX(4px)")
+        }
+    }
+
+
+    /*
+    ========================
+    SIDEBAR BUTTON ACTIVE
+    ========================
+    */
+
+    val sidebarButtonActive by style {
+
+        backgroundColor(Color("#2563EB"))
+
+        hover {
+
+            backgroundColor(Color("#1D4ED8"))
+        }
+    }
+
+
+    /*
+    ========================
+    SIDEBAR ICON
+    (svg blancos)
+    ========================
+    */
+
+    val sidebarIcon by style {
+
+        width(22.px)
+
+        height(22.px)
+
+        property("filter", "invert(1)")
+    }
+
+
+    /*
+    ========================
+    SIDEBAR LABEL
+    (desaparece en tablet)
+    ========================
+    */
+
+    val sidebarLabel by style {
+
+        media(mediaMaxWidth(1024.px)) {
+
+            display(DisplayStyle.None)
+        }
+    }
+
+
+    /*
+    ========================
+    HAMBURGER BUTTON
+    tablet + mobile
+    ========================
+    */
+
+    val hamburgerButton by style {
+
+        display(DisplayStyle.Flex)
+
+        justifyContent(JustifyContent.Center)
+
+        alignItems(AlignItems.Center)
+
+        width(48.px)
+
+        height(48.px)
+
+        padding(10.px)
+
+        backgroundColor(Color.transparent)
+
+        border(0.px)
+
+        borderRadius(10.px)
+
+        cursor("pointer")
+
+        property("transition", "background 0.2s ease")
+
+        hover {
+            backgroundColor(Color("#E2E8F0"))
+        }
+
+        media(mediaMinWidth(1024.px)) {
+            self style {
+                display(DisplayStyle.None)
+            }
+        }
+    }
+
+    val sidebarCollapsed by style {
+
+        justifyContent(JustifyContent.Center)
+
+        paddingLeft(18.px)
+
+        paddingRight(18.px)
+
+        width(100.percent)
+    }
+
+
+    val skeletonKeyframes by keyframes {
+
+        from {
+            property("background-position", "-200px 0")
+        }
+
+        to {
+            property("background-position", "200px 0")
+        }
+    }
+
+
+    val skeletonLoader by style {
+
+        width(30.px)
+
+        height(24.px)
+
+        borderRadius(6.px)
+
+        backgroundImage(
+            "linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 37%, #F1F5F9 63%)"
+        )
+
+        property("background-size", "400% 100%")
+
+        property(
+            "animation",
+            "$skeletonKeyframes 1.2s ease-in-out infinite"
+        )
+    }
 }

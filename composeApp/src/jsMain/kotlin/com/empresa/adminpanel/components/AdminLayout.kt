@@ -2,6 +2,7 @@ package com.empresa.adminpanel.components
 
 import androidx.compose.runtime.*
 import com.empresa.adminpanel.screens.*
+import kotlinx.browser.window
 import org.jetbrains.compose.web.dom.*
 import style.AppStyles
 
@@ -13,158 +14,236 @@ fun AdminLayout(
 
     var screen by remember { mutableStateOf("dashboard") }
 
-    Div({ classes(AppStyles.layout) }) {
+    var historialUserId by remember {
+        mutableStateOf<Int?>(null)
+    }
 
-        // Sidebar
-        Div({ classes(AppStyles.sidebar) }) {
+    var sidebarOpen by remember {
+        mutableStateOf(false)
+    }
 
-            H3({
-                classes(AppStyles.sidebarTitle)
-            }) {
+    var windowWidth by remember {
+        mutableStateOf(window.innerWidth)
+    }
 
-                Text("Admin Panel")
+
+    /*
+    Detectar resize
+    */
+
+    LaunchedEffect(Unit) {
+
+        window.onresize = {
+
+            windowWidth = window.innerWidth
+        }
+    }
+
+
+    val sidebarStyle = when {
+
+        windowWidth >= 1024 ->
+            AppStyles.sidebarDesktop
+
+        windowWidth >= 768 && !sidebarOpen ->
+            AppStyles.sidebarTablet
+
+        else ->
+            AppStyles.sidebarMobile
+    }
+
+
+    @Composable
+    fun navItem(
+        label: String,
+        icon: String,
+        route: String
+    ) {
+
+        Div({
+
+            classes(AppStyles.sidebarButton)
+
+            if (windowWidth < 1024 && !sidebarOpen) {
+
+                classes(AppStyles.sidebarCollapsed)
             }
 
-            Button(attrs = {
+            onClick {
 
-                classes(AppStyles.sidebarButton)
+                screen = route
 
-                if (screen == "dashboard") {
-                    classes(AppStyles.sidebarButtonActive)
-                }
-
-                onClick { screen = "dashboard" }
-
-            }) {
-                Img(
-                    src = "/icons/dashboard.svg",
-                    attrs = {
-                        classes(AppStyles.sidebarIcon)
-                    }
-                )
-                Text("Dashboard")
+                sidebarOpen = false
             }
 
-            Button(attrs = {
+        }) {
 
-                classes(AppStyles.sidebarButton)
+            Img(icon) {
 
-                if (screen == "usuarios") {
-                    classes(AppStyles.sidebarButtonActive)
-                }
-
-                onClick { screen = "usuarios" }
-
-            }) {
-                Img(
-                    src = "/icons/usuarios.svg",
-                    attrs = {
-                        classes(AppStyles.sidebarIcon)
-                    }
-                )
-                Text("Usuarios")
+                classes(AppStyles.sidebarIcon)
             }
 
-            Button(attrs = {
+            if (windowWidth >= 1024 || sidebarOpen) {
 
-                classes(AppStyles.sidebarButton)
+                Text(label)
+            }
+        }
+    }
 
-                if (screen == "fichajes") {
-                    classes(AppStyles.sidebarButtonActive)
+
+    Div({
+
+        classes(AppStyles.layout)
+
+    }) {
+
+        /*
+        OVERLAY MOBILE
+        */
+
+        if (windowWidth < 1024 && sidebarOpen) {
+
+            Div({
+
+                classes(AppStyles.sidebarOverlay)
+
+                onClick {
+
+                    sidebarOpen = false
                 }
 
-                onClick { screen = "fichajes" }
-
-            }) {
-                Img(
-                    src = "/icons/fichajes.svg",
-                    attrs = {
-                        classes(AppStyles.sidebarIcon)
-                    }
-                )
-                Text("Fichajes") }
-
-            Button(attrs = {
-
-                classes(AppStyles.sidebarButton)
-
-                if (screen == "vacaciones") {
-                    classes(AppStyles.sidebarButtonActive)
-                }
-
-                onClick { screen = "vacaciones" }
-
-            }) {
-                Img(
-                    src = "/icons/vacaciones.svg",
-                    attrs = {
-                        classes(AppStyles.sidebarIcon)
-                    }
-                )
-                Text("Vacaciones") }
-
-            Button(attrs = {
-
-                classes(AppStyles.sidebarButton)
-
-                if (screen == "faltas") {
-                    classes(AppStyles.sidebarButtonActive)
-                }
-
-                onClick { screen = "faltas" }
-
-            }) {
-                Img(
-                    src = "/icons/faltas.svg",
-                    attrs = {
-                        classes(AppStyles.sidebarIcon)
-                    }
-                )
-                Text("Faltas") }
-
-            Button(attrs = {
-
-                classes(AppStyles.sidebarButton)
-
-                if (screen == "documentos") {
-                    classes(AppStyles.sidebarButtonActive)
-                }
-
-                onClick { screen = "documentos" }
-
-            }) {
-                Img(
-                    src = "/icons/documentos.svg",
-                    attrs = {
-                        classes(AppStyles.sidebarIcon)
-                    }
-                )
-                Text("Documentos") }
+            })
         }
 
-        // Content area
-        Div({ classes(AppStyles.content, AppStyles.screenFade) }) {
+
+        /*
+        SIDEBAR
+        */
+
+        Div({
+
+            classes(sidebarStyle)
+
+            if (windowWidth < 1024 && sidebarOpen) {
+
+                classes(AppStyles.sidebarMobileOpen)
+            }
+
+        }) {
+
+            navItem("Dashboard", "/icons/dashboard.svg", "dashboard")
+
+            navItem("Usuarios", "/icons/usuarios.svg", "usuarios")
+
+            navItem("Fichajes", "/icons/fichajes.svg", "fichajes")
+
+            navItem("Vacaciones", "/icons/vacaciones.svg", "vacaciones")
+
+            navItem("Faltas", "/icons/faltas.svg", "faltas")
+
+            navItem("Documentos", "/icons/documentos.svg", "documentos")
+
+            navItem("Horas extra", "/icons/horasextra.svg", "horasextra")
+
+            navItem("Jornadas", "/icons/jornada.svg", "jornadas")
+        }
+
+
+        /*
+        CONTENT
+        */
+
+        Div({
+
+            classes(AppStyles.content)
+
+        }) {
 
             TopBar(
+
                 onLogout = onLogout,
-                showToast = showToast
+
+                showToast = showToast,
+
+                onHamburgerClick = {
+
+                    sidebarOpen = !sidebarOpen
+                }
             )
 
-            when (screen) {
 
-                "dashboard" -> DashboardScreen()
+            when {
 
-                "usuarios" -> UsuariosScreen()
+                historialUserId != null -> {
 
-                "fichajes" -> FichajesScreen()
+                    JornadasUsuarioScreen(
 
-                "vacaciones" -> VacacionesScreen()
+                        userId = historialUserId!!,
 
-                "faltas" -> FaltasScreen()
+                        onBack = {
 
-                "documentos" -> DocumentosScreen()
+                            historialUserId = null
+                        }
+                    )
+                }
+
+                screen == "dashboard" -> DashboardScreen()
+
+                screen == "usuarios" -> UsuariosScreen()
+
+                screen == "fichajes" -> FichajesScreen()
+
+                screen == "vacaciones" -> VacacionesScreen()
+
+                screen == "faltas" -> FaltasScreen()
+
+                screen == "documentos" -> DocumentosScreen()
+
+                screen == "horasextra" -> HorasExtrasScreen()
+
+                screen == "jornadas" ->
+
+                    JornadasScreen {
+
+                        historialUserId = it
+                    }
             }
         }
     }
 }
 
+@Composable
+fun sidebarItem(
+    id: String,
+    current: String,
+    onClickAction: () -> Unit,
+    icon: String,
+    label: String
+) {
+
+    Button({
+
+        classes(AppStyles.sidebarButton)
+
+        if (current == id)
+            classes(AppStyles.sidebarButtonActive)
+
+        onClick { onClickAction() }
+
+    }) {
+
+        Img(icon) {
+
+            classes(AppStyles.sidebarIcon)
+        }
+
+        Span({
+
+            classes(AppStyles.sidebarLabel)
+
+        }) {
+
+            Text(label)
+        }
+    }
+}

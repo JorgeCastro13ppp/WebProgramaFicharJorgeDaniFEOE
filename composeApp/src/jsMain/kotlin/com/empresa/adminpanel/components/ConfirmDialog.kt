@@ -14,14 +14,11 @@ import style.AppStyles
 fun ConfirmDialog(
 
     message: String,
-
     confirmText: String,
-
     confirmClass: String,
-
     onConfirm: () -> Unit,
-
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    extraContent: (@Composable (() -> Unit))? = null
 
 ) {
 
@@ -37,23 +34,23 @@ fun ConfirmDialog(
 
         }) {
 
-            P {
+            /* MENSAJE */
+
+            P({
+
+                classes(AppStyles.dialogMessage)
+
+            }) {
 
                 Text(message)
             }
 
+
+            /* BOTONES */
+
             Div({
 
-                style {
-
-                    display(DisplayStyle.Flex)
-
-                    justifyContent(JustifyContent.Center)
-
-                    gap(12.px)
-
-                    marginTop(18.px)
-                }
+                classes(AppStyles.dialogActions)
 
             }) {
 

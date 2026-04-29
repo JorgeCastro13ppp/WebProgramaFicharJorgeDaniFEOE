@@ -1,8 +1,10 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.CreateUserDialog
+import com.empresa.adminpanel.components.LoadingSpinner
 import com.empresa.adminpanel.components.ScreenHeader
 import com.empresa.adminpanel.components.Toast
 import com.empresa.adminpanel.models.Usuario
@@ -21,19 +23,26 @@ fun UsuariosScreen() {
     var usuarios by remember {
         mutableStateOf<List<Usuario>>(emptyList())
     }
+
     var selectedRole by remember {
         mutableStateOf("todos")
     }
 
     var showDialog by remember { mutableStateOf(false) }
-    var selectedUserId by remember { mutableStateOf<Int?>(null) }
+
+    var selectedUserId by remember {
+        mutableStateOf<Int?>(null)
+    }
+
     var selectedUsername by remember {
         mutableStateOf<String?>(null)
     }
+
     var deleting by remember { mutableStateOf(false) }
 
-    var showCreateDialog by remember { mutableStateOf(false) }
-    var showToast by remember { mutableStateOf(false) }
+    var showCreateDialog by remember {
+        mutableStateOf(false)
+    }
 
     var toastMessage by remember {
         mutableStateOf<String?>(null)
@@ -43,13 +52,32 @@ fun UsuariosScreen() {
         mutableStateOf("success")
     }
 
-    var sortBy by remember { mutableStateOf("username") }
-    var order by remember { mutableStateOf("asc") }
+    var sortBy by remember {
+        mutableStateOf("username")
+    }
+
+    var order by remember {
+        mutableStateOf("asc")
+    }
+
+    var loading by remember {
+        mutableStateOf(true)
+    }
+
     val scope = rememberCoroutineScope()
+
+
+    /*
+    ========================
+    LOAD USERS
+    ========================
+    */
 
     fun cargarUsuarios() {
 
         scope.launch {
+
+            loading = true
 
             val token =
                 window.localStorage.getItem("token")
@@ -67,22 +95,12 @@ fun UsuariosScreen() {
             val params = mutableListOf<String>()
 
 
-            if (selectedRole != "todos") {
-
+            if (selectedRole != "todos")
                 params.add("role=$selectedRole")
-            }
 
+            params.add("sortBy=$sortBy")
 
-            if (sortBy.isNotBlank()) {
-
-                params.add("sortBy=$sortBy")
-            }
-
-
-            if (order.isNotBlank()) {
-
-                params.add("order=$order")
-            }
+            params.add("order=$order")
 
 
             val queryString =
@@ -92,55 +110,79 @@ fun UsuariosScreen() {
                     ""
 
 
-            val url =
-                "http://127.0.0.1:8080/admin/usuarios$queryString"
-
-
             val requestInit = js("{}")
 
-            requestInit.method = "GET"
-            requestInit.headers = headers
-
+            requestInit["method"] = "GET"
+            requestInit["headers"] = headers
 
             val response =
-                window.fetch(url, requestInit)
-                    .await()
+                window.fetch(
+                    "${ApiClient.BASE_URL}/admin/usuarios$queryString",
+                    requestInit
+                ).await()
 
 
             if (response.ok) {
 
-                val text =
-                    response.text().await()
-
                 usuarios =
-                    Json.decodeFromString(text)
+                    Json.decodeFromString(
+                        response.text().await()
+                    )
             }
+
+            loading = false
         }
     }
 
+
     suspend fun eliminarUsuario(id: Int) {
 
-        val token = window.localStorage.getItem("token")
-            ?: return
+        val token =
+            window.localStorage.getItem("token")
+                ?: return
 
         val headers = Headers()
-        headers.append("Authorization", "Bearer $token")
+
+        headers.append(
+            "Authorization",
+            "Bearer $token"
+        )
 
         val requestInit = js("{}")
-        requestInit.method = "DELETE"
-        requestInit.headers = headers
+
+        requestInit["method"] = "DELETE"
+        requestInit["headers"] = headers
 
         window.fetch(
-            "http://127.0.0.1:8080/admin/usuarios/$id",
+            "\${ApiConfig.BASE_URL}/admin/usuarios/$id",
             requestInit
         ).await()
     }
 
+
     LaunchedEffect(Unit) {
+
         cargarUsuarios()
     }
 
-    Div {
+
+    /*
+    ========================
+    UI
+    ========================
+    */
+
+    Div({
+
+        classes(AppStyles.screenContainer)
+
+    }) {
+
+        /*
+        ========================
+        HEADER
+        ========================
+        */
 
         ScreenHeader(
 
@@ -152,222 +194,246 @@ fun UsuariosScreen() {
             }
 
         ) {
-            /* FILTRO ORDENACIÓN */
 
-            Select({
+            Div({
 
-                classes(AppStyles.filterSelect)
-
-                onChange {
-
-                    sortBy = it.target.value
-
-                    cargarUsuarios()
-                }
+                classes(AppStyles.filtersRow)
 
             }) {
 
-                Option("username") {
+                Select({
 
-                    Text("Usuario")
+                    classes(AppStyles.filterSelect)
+
+                    onChange {
+
+                        sortBy = it.target.value
+
+                        cargarUsuarios()
+                    }
+
+                }) {
+
+                    Option("username") {
+                        Text("Usuario")
+                    }
+
+                    Option("role") {
+                        Text("Rol")
+                    }
+
+                    Option("id") {
+                        Text("ID")
+                    }
                 }
 
-                Option("role") {
 
-                    Text("Rol")
+                Select({
+
+                    classes(AppStyles.filterSelect)
+
+                    onChange {
+
+                        order = it.target.value
+
+                        cargarUsuarios()
+                    }
+
+                }) {
+
+                    Option("asc") {
+                        Text("Ascendente")
+                    }
+
+                    Option("desc") {
+                        Text("Descendente")
+                    }
                 }
 
-                Option("id") {
 
-                    Text("ID")
-                }
-            }
+                Select({
 
-            /* ORDEN ASC / DESC */
+                    classes(AppStyles.filterSelect)
 
-            Select({
+                    onChange {
 
-                classes(AppStyles.filterSelect)
+                        selectedRole = it.target.value
 
-                onChange {
+                        cargarUsuarios()
+                    }
 
-                    order = it.target.value
+                }) {
 
-                    cargarUsuarios()
-                }
+                    Option("todos") {
+                        Text("Todos los roles")
+                    }
 
-            }) {
+                    Option("admin") {
+                        Text("Admin")
+                    }
 
-                Option("asc") {
-
-                    Text("Ascendente")
-                }
-
-                Option("desc") {
-
-                    Text("Descendente")
-                }
-            }
-
-            /* FILTRO ROLE */
-
-            Select({
-
-                classes(AppStyles.filterSelect)
-
-                onChange {
-
-                    selectedRole = it.target.value
-                    cargarUsuarios()
+                    Option("worker") {
+                        Text("Empleado")
+                    }
                 }
 
-            }) {
 
-                Option("todos") {
+                Button({
 
-                    Text("Todos los roles")
+                    classes(AppStyles.primaryButton)
+
+                    onClick {
+
+                        showCreateDialog = true
+                    }
+
+                }) {
+
+                    Text("+ Nuevo usuario")
                 }
-
-                Option("admin") {
-
-                    Text("Admin")
-                }
-
-                Option("worker") {
-
-                    Text("Empleado")
-                }
-            }
-
-
-            /* BOTÓN NUEVO USUARIO */
-
-            Button({
-
-                classes(AppStyles.primaryButton)
-
-                onClick {
-
-                    showCreateDialog = true
-                }
-
-            }) {
-
-                Text("+ Nuevo usuario")
             }
         }
 
-        /* TABLA */
+
+        /*
+        ========================
+        LOADING
+        ========================
+        */
+
+        if (loading) {
+
+            LoadingSpinner()
+
+            return@Div
+        }
+
+
+        /*
+        ========================
+        EMPTY STATE
+        ========================
+        */
+
+        if (usuarios.isEmpty()) {
+
+            P({
+
+                classes(AppStyles.emptyState)
+
+            }) {
+
+                Text("No hay usuarios registrados")
+            }
+
+            return@Div
+        }
+
+
+        /*
+        ========================
+        TABLE
+        ========================
+        */
 
         Div({
+
             classes(AppStyles.tableContainer)
+
         }) {
 
             Table({
-                classes(AppStyles.table)
+
+                classes(AppStyles.tableCard)
+
             }) {
 
                 Thead {
 
-                    Tr({
-                        classes(AppStyles.tableHeaderRow)
-                    }) {
+                    Tr {
 
-                        Th({ classes(AppStyles.tableHeader) }) {
-                            Text("ID")
-                        }
+                        Th { Text("ID") }
 
-                        Th({ classes(AppStyles.tableHeader) }) {
-                            Text("Usuario")
-                        }
+                        Th { Text("Usuario") }
 
-                        Th({ classes(AppStyles.tableHeader) }) {
-                            Text("Rol")
-                        }
+                        Th { Text("Rol") }
 
-                        Th({ classes(AppStyles.tableHeader) }) {
-                            Text("Acción")
-                        }
+                        Th { Text("Acción") }
                     }
                 }
 
+
                 Tbody {
-                    val usuariosFiltrados = usuarios
 
-                    usuariosFiltrados.forEach { usuario ->
+                    usuarios.forEach { usuario ->
 
-                        Tr({
-                            classes(AppStyles.tableRow)
-                        }) {
+                        val roleStyle =
+                            if (usuario.role == "admin")
 
-                            Td({
-                                classes(AppStyles.tableCell)
-                            }) {
+                                AppStyles.roleAdmin
+
+                            else
+
+                                AppStyles.roleWorker
+
+
+                        Tr {
+
+                            Td {
+
                                 Text("${usuario.id}")
                             }
 
-                            Td({
-                                classes(AppStyles.tableCell)
-                            }) {
+
+                            Td {
+
                                 Text(usuario.username)
                             }
 
-                            Td({
-                                classes(AppStyles.tableCell)
-                            }) {
 
-                                val roleStyle =
-                                    if (usuario.role == "admin")
-                                        AppStyles.roleAdmin
-                                    else
-                                        AppStyles.roleWorker
+                            Td {
 
                                 Span({
+
                                     classes(
                                         AppStyles.roleBadge,
                                         roleStyle
                                     )
+
                                 }) {
+
                                     Text(usuario.role)
                                 }
                             }
 
-                            Td({
-                                classes(AppStyles.tableCell)
-                            }) {
 
-                                Button(attrs = {
+                            Td({
+                                classes(AppStyles.actionCell)
+                            }
+
+                            ) {
+
+                                Button({
 
                                     classes(AppStyles.deleteButton)
 
                                     onClick {
-                                        selectedUserId = usuario.id
-                                        selectedUsername = usuario.username
+
+                                        selectedUserId =
+                                            usuario.id
+
+                                        selectedUsername =
+                                            usuario.username
+
                                         showDialog = true
                                     }
 
                                 }) {
 
-                                    if (
-                                        deleting &&
-                                        selectedUserId == usuario.id
-                                    ) {
-
-                                        Div({
-                                            classes(AppStyles.loader)
-                                        }) {}
-
-                                    } else {
-
-                                        Img(
-                                            src = "/icons/delete.svg",
-                                            attrs = {
-                                                classes(AppStyles.deleteIcon)
-                                            }
-                                        )
-
-                                        Text("Eliminar")
+                                    Img("/icons/delete.svg"){
+                                        classes(AppStyles.deleteIcon)
                                     }
+                                    Text("Eliminar")
                                 }
                             }
                         }
@@ -376,13 +442,19 @@ fun UsuariosScreen() {
             }
         }
 
-        /* DIALOG ELIMINAR */
+
+        /*
+        ========================
+        DELETE CONFIRM
+        ========================
+        */
 
         if (showDialog && selectedUserId != null) {
 
             ConfirmDialog(
-                message = "¿Eliminar usuario \"$selectedUsername\"?"
-                ,
+
+                message =
+                    "¿Eliminar usuario \"$selectedUsername\"?",
 
                 confirmText = "Eliminar",
 
@@ -404,6 +476,7 @@ fun UsuariosScreen() {
                         cargarUsuarios()
 
                         deleting = false
+
                         showDialog = false
                     }
                 },
@@ -415,7 +488,12 @@ fun UsuariosScreen() {
             )
         }
 
-        /* DIALOG CREAR USUARIO */
+
+        /*
+        ========================
+        CREATE USER
+        ========================
+        */
 
         if (showCreateDialog) {
 
@@ -439,6 +517,12 @@ fun UsuariosScreen() {
         }
     }
 
+
+    /*
+    ========================
+    TOAST
+    ========================
+    */
 
     toastMessage?.let {
 

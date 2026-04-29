@@ -4,11 +4,15 @@ import androidx.compose.runtime.*
 import com.empresa.adminpanel.components.AdminLayout
 import com.empresa.adminpanel.components.Toast
 import com.empresa.adminpanel.screens.LoginScreen
+import kotlinx.browser.window
 import org.jetbrains.compose.web.css.Style
 import org.jetbrains.compose.web.renderComposable
 import style.AppStyles
 
 fun main() {
+
+    ApiClient.token =
+        window.localStorage.getItem("token")
 
     renderComposable(rootElementId = "root") {
 

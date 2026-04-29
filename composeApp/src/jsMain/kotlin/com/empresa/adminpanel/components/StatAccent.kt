@@ -4,5 +4,6 @@ enum class StatAccent {
     BLUE,
     GREEN,
     ORANGE,
-    RED
+    RED,
+    YELLOW
 }

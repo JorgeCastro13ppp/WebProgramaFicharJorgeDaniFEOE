@@ -1,6 +1,7 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.CreateDocumentoDialog
 import com.empresa.adminpanel.components.ScreenHeader
@@ -11,15 +12,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
-import org.jetbrains.compose.web.css.AlignItems
-import org.jetbrains.compose.web.css.DisplayStyle
-import org.jetbrains.compose.web.css.JustifyContent
-import org.jetbrains.compose.web.css.alignItems
-import org.jetbrains.compose.web.css.display
-import org.jetbrains.compose.web.css.gap
-import org.jetbrains.compose.web.css.justifyContent
-import org.jetbrains.compose.web.css.marginBottom
-import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.*
 import org.w3c.fetch.Headers
 import style.AppStyles
@@ -134,7 +126,7 @@ fun DocumentosScreen() {
 
 
             val url =
-                "http://127.0.0.1:8080/admin/documentos$queryString"
+                "${ApiClient.BASE_URL}/admin/documentos$queryString"
 
 
             val requestInit = js("{}")
@@ -180,7 +172,7 @@ fun DocumentosScreen() {
             requestInit.headers = headers
 
             val response = window.fetch(
-                "http://127.0.0.1:8080/admin/usuarios",
+                "${ApiClient.BASE_URL}/admin/usuarios",
                 requestInit
             ).await()
 
@@ -210,7 +202,7 @@ fun DocumentosScreen() {
             requestInit.headers = headers
 
             window.fetch(
-                "http://127.0.0.1:8080/admin/documentos/$id",
+                "${ApiClient.BASE_URL}/admin/documentos/$id",
                 requestInit
             ).await()
 
@@ -426,7 +418,7 @@ fun DocumentosScreen() {
 
                 Table({
 
-                    classes(AppStyles.table)
+                    classes(AppStyles.tableCard)
 
                 }) {
 
@@ -529,6 +521,10 @@ fun DocumentosScreen() {
 
                                     }) {
 
+                                        Img("/icons/open.svg"){
+                                            classes(AppStyles.deleteIcon)
+                                        }
+
                                         Text("Abrir")
                                     }
                                 }
@@ -556,6 +552,10 @@ fun DocumentosScreen() {
                                         }
 
                                     }) {
+
+                                        Img("/icons/delete.svg"){
+                                            classes(AppStyles.deleteIcon)
+                                        }
 
                                         Text("Eliminar")
                                     }

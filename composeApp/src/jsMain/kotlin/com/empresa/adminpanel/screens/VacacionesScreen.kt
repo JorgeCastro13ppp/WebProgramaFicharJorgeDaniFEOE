@@ -1,12 +1,16 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.CreateVacacionDialog
 import com.empresa.adminpanel.components.ScreenHeader
+import com.empresa.adminpanel.components.StatAccent
+import com.empresa.adminpanel.components.StatCard
 import com.empresa.adminpanel.components.Toast
 import com.empresa.adminpanel.models.Usuario
 import com.empresa.adminpanel.models.Vacacion
+import com.empresa.adminpanel.models.VacacionesResumenAdminResponse
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
@@ -47,6 +51,30 @@ fun VacacionesScreen() {
     var showCreateDialog by remember {
         mutableStateOf(false)
     }
+
+    var resumenGlobal by remember {
+        mutableStateOf<List<VacacionesResumenAdminResponse>>(emptyList())
+    }
+
+    val totalNavidadRestantes =
+        resumenGlobal.sumOf {
+            it.diasNavidadRestantes
+        }
+
+    val totalLibresRestantes =
+        resumenGlobal.sumOf {
+            it.diasLibresRestantes
+        }
+
+    val totalDiasRestantes =
+        resumenGlobal.sumOf {
+            it.diasTotalesRestantes
+        }
+
+    val pendientesAprobacion =
+        vacaciones.count {
+            it.estado == "pendiente"
+        }
 
     var showDialog by remember { mutableStateOf(false) }
     var loading by remember {
@@ -135,7 +163,7 @@ fun VacacionesScreen() {
 
 
             val url =
-                "http://127.0.0.1:8080/vacaciones$queryString"
+                "${ApiClient.BASE_URL}/vacaciones$queryString"
 
 
             val requestInit = js("{}")
@@ -184,7 +212,7 @@ fun VacacionesScreen() {
             requestInit.headers = headers
 
             val response = window.fetch(
-                "http://127.0.0.1:8080/admin/usuarios",
+                "${ApiClient.BASE_URL}/admin/usuarios",
                 requestInit
             ).await()
 
@@ -216,11 +244,48 @@ fun VacacionesScreen() {
             requestInit.headers = headers
 
             window.fetch(
-                "http://127.0.0.1:8080/vacaciones/$id?estado=$estado",
+                "${ApiClient.BASE_URL}/vacaciones/$id?estado=$estado",
                 requestInit
             ).await()
 
             cargarVacaciones()
+        }
+    }
+
+    fun cargarResumenGlobal() {
+
+        scope.launch {
+
+            val token =
+                window.localStorage.getItem("token")
+                    ?: return@launch
+
+            val headers = Headers()
+
+            headers.append(
+                "Authorization",
+                "Bearer $token"
+            )
+
+            val requestInit = js("{}")
+
+            requestInit.method = "GET"
+            requestInit.headers = headers
+
+            val response =
+                window.fetch(
+                    "${ApiClient.BASE_URL}/admin/vacaciones/resumen",
+                    requestInit
+                ).await()
+
+            if (response.ok) {
+
+                val text =
+                    response.text().await()
+
+                resumenGlobal =
+                    Json.decodeFromString(text)
+            }
         }
     }
 
@@ -256,8 +321,12 @@ fun VacacionesScreen() {
     }
 
     LaunchedEffect(Unit) {
+
         cargarVacaciones()
+
         cargarUsuarios()
+
+        cargarResumenGlobal()
     }
 
     Div {
@@ -400,6 +469,37 @@ fun VacacionesScreen() {
             }
         }
 
+        Div({
+
+            classes(AppStyles.statsGrid)
+
+        }) {
+
+            StatCard(
+                title = "Navidad restantes",
+                value = totalNavidadRestantes.toString(),
+                accent = StatAccent.BLUE
+            )
+
+            StatCard(
+                title = "Libres restantes",
+                value = totalLibresRestantes.toString(),
+                accent = StatAccent.YELLOW
+            )
+
+            StatCard(
+                title = "Total disponibles",
+                value = totalDiasRestantes.toString(),
+                accent = StatAccent.GREEN
+            )
+
+            StatCard(
+                title = "Pendientes aprobar",
+                value = pendientesAprobacion.toString(),
+                accent = StatAccent.RED
+            )
+        }
+
 
         /* TABLA */
 
@@ -428,7 +528,7 @@ fun VacacionesScreen() {
 
                 Table({
 
-                    classes(AppStyles.table)
+                    classes(AppStyles.tableFlat)
 
                 }) {
 
@@ -579,6 +679,75 @@ fun VacacionesScreen() {
                                                 Text("Rechazar")
                                             }
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (resumenGlobal.isNotEmpty()) {
+
+                    H3 {
+
+                        Text("Resumen por usuario")
+                    }
+
+                    Div({
+
+                        classes(AppStyles.tableContainer)
+
+                    }) {
+
+                        Table({
+
+                            classes(AppStyles.tableCard)
+
+                        }) {
+
+                            Thead {
+
+                                Tr {
+
+                                    Th { Text("Usuario") }
+
+                                    Th { Text("Navidad restantes") }
+
+                                    Th { Text("Libres restantes") }
+
+                                    Th { Text("Total disponibles") }
+                                }
+                            }
+
+                            Tbody {
+
+                                resumenGlobal.forEach {
+
+                                    val highlightClass = when {
+
+                                        it.diasTotalesRestantes == 0 ->
+                                            AppStyles.rowRejected
+
+                                        it.diasTotalesRestantes <= 2 ->
+                                            AppStyles.rowWarning
+
+                                        else ->
+                                            AppStyles.rowApproved
+                                    }
+
+                                    Tr({
+
+                                        classes(highlightClass)
+
+                                    }) {
+
+                                        Td { Text(it.username) }
+
+                                        Td { Text("${it.diasNavidadRestantes}") }
+
+                                        Td { Text("${it.diasLibresRestantes}") }
+
+                                        Td { Text("${it.diasTotalesRestantes}") }
                                     }
                                 }
                             }

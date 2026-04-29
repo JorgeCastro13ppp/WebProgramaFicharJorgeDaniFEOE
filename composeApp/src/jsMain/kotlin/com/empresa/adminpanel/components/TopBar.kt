@@ -4,7 +4,14 @@ import androidx.compose.runtime.*
 import com.empresa.adminpanel.screens.obtenerFechaHoraActual
 import kotlinx.browser.window
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.web.css.*
+import org.jetbrains.compose.web.css.AlignItems
+import org.jetbrains.compose.web.css.DisplayStyle
+import org.jetbrains.compose.web.css.alignItems
+import org.jetbrains.compose.web.css.display
+import org.jetbrains.compose.web.css.gap
+import org.jetbrains.compose.web.css.height
+import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.css.width
 import org.jetbrains.compose.web.dom.*
 import style.AppStyles
 import kotlin.js.Date
@@ -12,7 +19,8 @@ import kotlin.js.Date
 @Composable
 fun TopBar(
     onLogout: () -> Unit,
-    showToast: (String, String) -> Unit
+    showToast: (String, String) -> Unit,
+    onHamburgerClick: () -> Unit
 ) {
 
     val username =
@@ -20,7 +28,13 @@ fun TopBar(
 
     var currentTime by remember { mutableStateOf("") }
 
-    // reloj en tiempo real con formato español profesional
+
+    /*
+    ========================
+    RELOJ EN TIEMPO REAL
+    ========================
+    */
+
     LaunchedEffect(Unit) {
 
         while (true) {
@@ -50,16 +64,25 @@ fun TopBar(
         }
     }
 
-    Div({ classes(AppStyles.topbar) }) {
 
-        // título panel
-        H3 {
+    /*
+    ========================
+    TOPBAR UI
+    ========================
+    */
 
-            Text("Panel de Administración")
-        }
+    Div({
 
+        classes(AppStyles.topbar)
 
-        // bloque derecha (fecha + usuario + logout)
+    }) {
+
+        /*
+        ========================
+        IZQUIERDA
+        ========================
+        */
+
         Div({
 
             style {
@@ -68,20 +91,61 @@ fun TopBar(
 
                 alignItems(AlignItems.Center)
 
-                property("gap", "20px")
+                gap(12.px)
             }
 
         }) {
 
-            // fecha actual dinámica
+            /*
+            HAMBURGER (solo móvil)
+            */
+
+            Button({
+
+                classes(AppStyles.hamburgerButton)
+
+                onClick { onHamburgerClick() }
+
+            }) {
+
+                Img("/icons/menu.svg") {
+
+                    style {
+
+                        width(30.px)
+
+                        height(30.px)
+                    }
+                }
+            }
+
+
+            H3({
+
+                classes(AppStyles.topbarTitle)
+
+            }) {
+
+                Text("Panel de Administración")
+            }
+        }
+
+
+        /*
+        ========================
+        DERECHA
+        ========================
+        */
+
+        Div({
+
+            classes(AppStyles.topbarRight)
+
+        }) {
+
             Span({
 
-                style {
-
-                    fontSize(14.px)
-
-                    color(Color("#9EA7AD"))
-                }
+                classes(AppStyles.topbarClock)
 
             }) {
 
@@ -89,8 +153,11 @@ fun TopBar(
             }
 
 
-            // usuario logueado
-            Span({ classes(AppStyles.username) }) {
+            Span({
+
+                classes(AppStyles.username)
+
+            }) {
 
                 Img(
                     src = "/icons/admin.svg",
@@ -103,14 +170,14 @@ fun TopBar(
             }
 
 
-            // botón logout
-            Button(attrs = {
+            Button({
 
                 classes(AppStyles.logoutButton)
 
                 onClick {
 
                     window.localStorage.removeItem("token")
+
                     window.localStorage.removeItem("username")
 
                     showToast(
@@ -130,7 +197,7 @@ fun TopBar(
                     }
                 )
 
-                Text("Logout")
+                Text("Salir")
             }
         }
     }

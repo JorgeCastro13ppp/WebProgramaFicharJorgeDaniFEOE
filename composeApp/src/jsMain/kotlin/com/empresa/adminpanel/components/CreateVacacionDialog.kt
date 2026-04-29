@@ -1,11 +1,13 @@
 package com.empresa.adminpanel.components
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.models.Usuario
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
+import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.dom.*
 import org.w3c.fetch.Headers
 import style.AppStyles
@@ -16,7 +18,6 @@ fun CreateVacacionDialog(
     usuarios: List<Usuario>,
     onError: (String) -> Unit,
     onClose: () -> Unit,
-
     onCreated: (String) -> Unit
 
 ) {
@@ -29,16 +30,43 @@ fun CreateVacacionDialog(
 
     var loading by remember { mutableStateOf(false) }
 
+
+    /* VALIDACIÓN VISUAL */
+
+    var userError by remember { mutableStateOf(false) }
+
+    var fechaInicioError by remember { mutableStateOf(false) }
+
+    var fechaFinError by remember { mutableStateOf(false) }
+
+    var rangoError by remember { mutableStateOf(false) }
+
+
     val scope = rememberCoroutineScope()
+
+
+    fun validar(): Boolean {
+
+        userError = selectedUserId.isEmpty()
+
+        fechaInicioError = fechaInicio.isEmpty()
+
+        fechaFinError = fechaFin.isEmpty()
+
+        rangoError =
+            !fechaInicioError &&
+                    !fechaFinError &&
+                    fechaInicio > fechaFin
+
+
+        return !(userError || fechaInicioError || fechaFinError || rangoError)
+    }
 
 
     fun crearVacacion() {
 
-        if (
-            selectedUserId.isEmpty()
-            || fechaInicio.isEmpty()
-            || fechaFin.isEmpty()
-        ) return
+        if (!validar())
+            return
 
 
         scope.launch {
@@ -81,7 +109,7 @@ fun CreateVacacionDialog(
 
             val response = window.fetch(
 
-                "http://127.0.0.1:8080/admin/vacaciones/$selectedUserId",
+                "${ApiClient.BASE_URL}/admin/vacaciones/$selectedUserId",
 
                 requestInit
 
@@ -104,13 +132,13 @@ fun CreateVacacionDialog(
 
             } else {
 
-            val json =
-                JSON.parse<dynamic>(
-                    response.text().await()
-                )
+                val json =
+                    JSON.parse<dynamic>(
+                        response.text().await()
+                    )
 
-            onError(json.message as String)
-        }
+                onError(json.message as String)
+            }
         }
     }
 
@@ -127,82 +155,188 @@ fun CreateVacacionDialog(
 
         }) {
 
-            H3 {
+            H3({
+
+                classes(AppStyles.dialogTitle)
+
+            }) {
 
                 Text("Crear vacaciones")
             }
 
 
-            /* USUARIO */
+            Div({
 
-            Select({
-
-                classes(AppStyles.loginInput)
-
-                onChange {
-
-                    selectedUserId =
-                        it.target.value
-                }
+                classes(AppStyles.dialogForm)
 
             }) {
 
-                Option("") {
+                /* USUARIO */
 
-                    Text("Seleccionar usuario")
+                Select({
+
+                    classes(AppStyles.dialogInput)
+
+                    if (userError)
+                        classes(AppStyles.dialogInputError)
+
+                    onChange {
+
+                        selectedUserId =
+                            it.target.value
+
+                        userError = false
+                    }
+
+                }) {
+
+                    Option("") {
+
+                        Text("Seleccionar usuario")
+                    }
+
+                    usuarios.forEach {
+
+                        Option(it.id.toString()) {
+
+                            Text(it.username)
+                        }
+                    }
                 }
 
-                usuarios.forEach {
 
-                    Option(it.id.toString()) {
+                if (userError) {
 
-                        Text(it.username)
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona un usuario")
+                    }
+                }
+
+
+                /* FECHA INICIO */
+
+                Input(InputType.Date, attrs = {
+
+                    classes(AppStyles.dialogInput)
+
+                    if (fechaInicioError || rangoError)
+                        classes(AppStyles.dialogInputError)
+
+                    value(fechaInicio)
+
+                    onInput {
+
+                        fechaInicio = it.value
+
+                        fechaInicioError = false
+                        rangoError = false
+                    }
+                })
+
+
+                if (fechaInicioError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona una fecha de inicio")
+                    }
+                }
+
+
+                /* FECHA FIN */
+
+                Input(InputType.Date, attrs = {
+
+                    classes(AppStyles.dialogInput)
+
+                    if (fechaFinError || rangoError)
+                        classes(AppStyles.dialogInputError)
+
+                    value(fechaFin)
+
+                    onInput {
+
+                        fechaFin = it.value
+
+                        fechaFinError = false
+                        rangoError = false
+                    }
+                })
+
+
+                if (fechaFinError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("Selecciona una fecha de fin")
+                    }
+                }
+
+
+                if (rangoError) {
+
+                    Span({
+
+                        classes(AppStyles.inputErrorText)
+
+                    }) {
+
+                        Text("La fecha fin no puede ser anterior a la fecha inicio")
                     }
                 }
             }
 
 
-            /* FECHA INICIO */
-
-            Input(InputType.Date, attrs = {
-
-                classes(AppStyles.loginInput)
-
-                value(fechaInicio)
-
-                onInput {
-
-                    fechaInicio = it.value
-                }
-            })
-
-
-            /* FECHA FIN */
-
-            Input(InputType.Date, attrs = {
-
-                classes(AppStyles.loginInput)
-
-                value(fechaFin)
-
-                onInput {
-
-                    fechaFin = it.value
-                }
-            })
-
-
-            /* BOTONES */
-
             Div({
 
-                classes(AppStyles.dialogButtons)
+                classes(AppStyles.dialogActions)
 
             }) {
 
-                Button({
+                Button(attrs = {
+
+                    classes(AppStyles.secondaryButton)
+
+                    onClick {
+
+                        onClose()
+                    }
+
+                }) {
+
+                    Text("Cancelar")
+                }
+
+
+                Button(attrs = {
 
                     classes(AppStyles.primaryButton)
+
+                    if (
+                        selectedUserId.isEmpty()
+                        || fechaInicio.isEmpty()
+                        || fechaFin.isEmpty()
+                        || fechaInicio > fechaFin
+                        || loading
+                    ) {
+
+                        disabled()
+
+                        classes(AppStyles.primaryButtonDisabled)
+                    }
 
                     onClick {
 
@@ -215,7 +349,7 @@ fun CreateVacacionDialog(
 
                         Div({
 
-                            classes(AppStyles.loader)
+                            classes(AppStyles.loaderSmall)
 
                         }) {}
 
@@ -223,21 +357,6 @@ fun CreateVacacionDialog(
 
                         Text("Guardar")
                     }
-                }
-
-
-                Button({
-
-                    classes(AppStyles.secondaryButton)
-
-                    onClick {
-
-                        onClose()
-                    }
-
-                }) {
-
-                    Text("Cancelar")
                 }
             }
         }
