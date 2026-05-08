@@ -4,7 +4,7 @@ import kotlinx.browser.window
 
 object ApiClient {
 
-    const val BASE_URL = "https://192.168.1.45:8443"
+    const val BASE_URL = "https://192.168.1.32:8443"
 
     var token: String? =
         window.localStorage.getItem("token")

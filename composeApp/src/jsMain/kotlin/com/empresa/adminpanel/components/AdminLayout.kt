@@ -52,6 +52,18 @@ fun AdminLayout(
             AppStyles.sidebarMobile
     }
 
+    val contentStyle = when {
+
+        windowWidth >= 1024 ->
+            AppStyles.contentDesktop
+
+        windowWidth >= 768 ->
+            AppStyles.contentTablet
+
+        else ->
+            AppStyles.contentMobile
+    }
+
 
     @Composable
     fun navItem(
@@ -146,6 +158,7 @@ fun AdminLayout(
             navItem("Horas extra", "/icons/horasextra.svg", "horasextra")
 
             navItem("Jornadas", "/icons/jornada.svg", "jornadas")
+            navItem("Jornadas globales", "/icons/jornada.svg", "jornadas_global")
         }
 
 
@@ -155,7 +168,7 @@ fun AdminLayout(
 
         Div({
 
-            classes(AppStyles.content)
+            classes(contentStyle)
 
         }) {
 
@@ -207,6 +220,9 @@ fun AdminLayout(
 
                         historialUserId = it
                     }
+
+                screen == "jornadas_global" ->
+                    JornadasGlobalScreen()
             }
         }
     }

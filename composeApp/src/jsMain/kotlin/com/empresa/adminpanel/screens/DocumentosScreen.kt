@@ -467,13 +467,17 @@ fun DocumentosScreen() {
                                 }
 
 
-                                Td {
+                                Td({
+                                    classes(AppStyles.urlCell)
+                                }) {
 
                                     Text(doc.username)
                                 }
 
 
-                                Td {
+                                Td({
+                                    classes(AppStyles.urlCell)
+                                }) {
 
                                     Text(doc.nombre)
                                 }
@@ -509,7 +513,7 @@ fun DocumentosScreen() {
 
                                     Button({
 
-                                        classes(AppStyles.openButton)
+                                        classes(AppStyles.primaryButton)
 
                                         onClick {
 

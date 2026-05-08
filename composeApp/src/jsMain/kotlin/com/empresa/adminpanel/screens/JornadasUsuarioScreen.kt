@@ -70,12 +70,32 @@ fun JornadasUsuarioScreen(
                 val text =
                     response.text().await()
 
+                val json = Json {
+                    ignoreUnknownKeys = true
+                }
+
                 jornadas =
-                    Json.decodeFromString(text)
+                    json.decodeFromString(text)
             }
 
             loading = false
         }
+    }
+
+    fun formatHora(timestamp: Long): String {
+
+        val options = js("""
+        ({
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+    """)
+
+        return Date(timestamp).toLocaleTimeString("es-ES", options)
+    }
+
+    fun formatFecha(timestamp: Long): String {
+        return Date(timestamp).toLocaleDateString("es-ES")
     }
 
 
@@ -199,7 +219,7 @@ fun JornadasUsuarioScreen(
 
                         Text(
                             jornada.entradaReal
-                                ?.let { Date(it).toLocaleString() }
+                                ?.let { formatHora(it) }
                                 ?: "-"
                         )
                     }
@@ -208,7 +228,7 @@ fun JornadasUsuarioScreen(
 
                         Text(
                             jornada.salidaReal
-                                ?.let { Date(it).toLocaleString() }
+                                ?.let { formatHora(it) }
                                 ?: "-"
                         )
                     }

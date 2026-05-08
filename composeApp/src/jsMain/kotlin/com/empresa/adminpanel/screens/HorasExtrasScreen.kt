@@ -314,21 +314,11 @@ fun HorasExtrasScreen() {
 
                     if (selectedEstado == "pendiente") {
 
-                        Td({
-
-                            style {
-                                textAlign("center")
-                            }
-
-                        }) {
+                        Td {
 
                             Div({
 
-                                style {
-                                    display(DisplayStyle.Flex)
-                                    justifyContent(JustifyContent.Center)
-                                    gap(8.px)
-                                }
+                                classes(AppStyles.actionsGroup)
 
                             }) {
 
@@ -345,9 +335,8 @@ fun HorasExtrasScreen() {
 
                                 }) {
                                     Img("/icons/check.svg"){
-                                        classes(AppStyles.deleteIcon)
+                                        classes(AppStyles.aproveIcon)
                                     }
-                                    Text("Aprobar")
                                 }
 
 
@@ -364,9 +353,8 @@ fun HorasExtrasScreen() {
 
                                 }) {
                                     Img("/icons/cross.svg"){
-                                        classes(AppStyles.deleteIcon)
+                                        classes(AppStyles.desAproveIcon)
                                     }
-                                    Text("Rechazar")
                                 }
                             }
                         }

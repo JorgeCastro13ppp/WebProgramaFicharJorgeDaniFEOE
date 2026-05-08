@@ -211,6 +211,18 @@ fun FichajesScreen() {
         ).await()
     }
 
+    fun formatHora(timestamp: Long): String {
+
+        val options = js("""
+        ({
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+    """)
+
+        return Date(timestamp).toLocaleTimeString("es-ES", options)
+    }
+
     if (showCreateDialog) {
 
         CreateFichajeDialog(
@@ -476,11 +488,9 @@ fun FichajesScreen() {
 
                             val fecha =
                                 Date(fichaje.fechaHora)
-                                    .toLocaleDateString()
+                                    .toLocaleDateString("es-ES")
 
-                            val hora =
-                                Date(fichaje.fechaHora)
-                                    .toLocaleTimeString()
+                            val hora = formatHora(fichaje.fechaHora)
 
 
                             Tr {

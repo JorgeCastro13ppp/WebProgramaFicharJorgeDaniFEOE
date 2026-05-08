@@ -14,10 +14,34 @@ object AppStyles : StyleSheet() {
         }
 
         "html, body" style {
-            fontFamily("Inter", "system-ui", "sans-serif")
+
+            fontFamily(
+                "Inter",
+                "system-ui",
+                "sans-serif"
+            )
+
+            fontSize(19.px)
+
+            property(
+                "font-weight",
+                "500"
+            )
+
+            property(
+                "-webkit-font-smoothing",
+                "antialiased"
+            )
+
             margin(0.px)
+
             padding(0.px)
+
             height(100.percent)
+
+            backgroundColor(
+                rgb(248, 250, 252)
+            )
         }
 
     }
@@ -135,7 +159,7 @@ object AppStyles : StyleSheet() {
             color(Color("#CBD5E1"))
         }
 
-        fontSize(15.px)
+        fontSize(20.px)
 
         property("transition", "border 0.2s ease")
 
@@ -151,6 +175,7 @@ object AppStyles : StyleSheet() {
 
         width(100.percent)
 
+        fontSize(24.px)
         padding(14.px)
 
         backgroundColor(Color("#2d3444"))
@@ -314,24 +339,30 @@ object AppStyles : StyleSheet() {
 
     val deleteButton by style {
 
-        display( DisplayStyle.Flex)
-        alignItems(AlignItems.Center)
-        property("justify-self", "center")
 
+
+        display(DisplayStyle.Flex)
         gap(6.px)
 
-        padding(6.px, 10.px)
+        property("margin", "0 auto")
+
+        padding(10.px, 16.px)
 
         backgroundColor(Color("#ef4444"))
 
         color(Color.white)
 
-        borderRadius(6.px)
+        borderRadius(8.px)
 
-        border { style(LineStyle.None) }
+        border {
+            style(LineStyle.None)
+        }
+
+        fontSize(14.px)
+
+        fontWeight("500")
 
         cursor("pointer")
-
 
         property("transition", "0.15s ease")
 
@@ -366,7 +397,7 @@ object AppStyles : StyleSheet() {
 
         borderRadius(999.px)
 
-        fontSize(12.px)
+        fontSize(24.px)
 
         fontWeight("600")
 
@@ -393,6 +424,8 @@ object AppStyles : StyleSheet() {
 
         display(DisplayStyle.Flex)
         gap(6.px)
+
+        property("margin", "0 auto")
 
         padding(10.px, 16.px)
 
@@ -426,7 +459,7 @@ object AppStyles : StyleSheet() {
 
         borderRadius(20.px)
 
-        fontSize(13.px)
+        fontSize(20.px)
 
         fontWeight("600")
     }
@@ -438,6 +471,7 @@ object AppStyles : StyleSheet() {
         display(DisplayStyle.Flex)
 
         alignItems(AlignItems.Center)
+        property("margin", "0 auto")
 
         gap(8.px)
 
@@ -508,6 +542,7 @@ object AppStyles : StyleSheet() {
 
         backgroundColor(Color("#FEE2E2"))
         color(Color("#991B1B"))
+        property("font-variant", "all-small-cap")
     }
 
     val badgeInfo by style {
@@ -607,6 +642,21 @@ object AppStyles : StyleSheet() {
         justifyContent(JustifyContent.Center)
     }
 
+    val urlCell by style {
+
+        property("word-break","breakword")
+        property("overflow-wrap","anywhere")
+        property("white-space","normal")
+    }
+
+    val statusCell by style {
+
+        height(5.vh)
+        textAlign("center")
+        //display(DisplayStyle.Flex)
+        justifyContent(JustifyContent.Center)
+    }
+
     val actionButtonsGroup by style {
 
         display(DisplayStyle.Flex)
@@ -634,7 +684,7 @@ object AppStyles : StyleSheet() {
 
         borderRadius(12.px)
 
-        fontSize(13.px)
+        fontSize(20.px)
 
         fontWeight("500")
 
@@ -817,6 +867,7 @@ object AppStyles : StyleSheet() {
         color(Color.white)
         border(0.px)
         cursor("pointer")
+        property("justify-content", "center")
     }
 
     val dangerButton by style {
@@ -829,6 +880,7 @@ object AppStyles : StyleSheet() {
         color(Color.white)
         border(0.px)
         cursor("pointer")
+        property("justify-content", "center")
     }
 
 
@@ -843,7 +895,7 @@ object AppStyles : StyleSheet() {
         color(Color.white)
         padding(4.px, 10.px)
         borderRadius(6.px)
-        fontSize(12.px)
+        fontSize(16.px)
     }
 
     val rowWarning by style {
@@ -1070,7 +1122,7 @@ object AppStyles : StyleSheet() {
 
     val topbarTitle by style {
 
-        fontSize(20.px)
+        fontSize(36.px)
 
         fontWeight("600")
 
@@ -1144,6 +1196,7 @@ object AppStyles : StyleSheet() {
         textAlign("center")
 
         property("border-collapse", "collapse")
+        property("table-layout", "fixed")
     }
 
     val tableCard by style {
@@ -1155,6 +1208,9 @@ object AppStyles : StyleSheet() {
         property("border-collapse", "separate")
 
         property("border-spacing", "0 12px")
+
+        property("table-layout", "fixed")
+
     }
 
     val loginLogo by style {
@@ -1183,6 +1239,14 @@ object AppStyles : StyleSheet() {
         width(16.px)
         height(16.px)
     }
+    val aproveIcon by style {
+        width(32.px)
+        height(32.px)
+    }
+    val desAproveIcon by style {
+        width(32.px)
+        height(32.px)
+    }
 
 
     val layout by style {
@@ -1198,6 +1262,39 @@ object AppStyles : StyleSheet() {
         padding(24.px)
     }
 
+    val contentDesktop by style {
+
+        flexGrow(1)
+
+        padding(24.px)
+
+        marginLeft(240.px)
+
+        overflowY("auto")
+    }
+
+    val contentTablet by style {
+
+        flexGrow(1)
+
+        padding(24.px)
+
+        marginLeft(72.px)
+
+        overflowY("auto")
+    }
+
+    val contentMobile by style {
+
+        flexGrow(1)
+
+        padding(16.px)
+
+        marginLeft(0.px)
+
+        overflowY("auto")
+    }
+
 
     /*
     ========================
@@ -1206,6 +1303,11 @@ object AppStyles : StyleSheet() {
     */
 
     val sidebarDesktop by style {
+
+        position(Position.Fixed)
+
+        top(0.px)
+        left(0.px)
 
         backgroundColor(Color("#2d3444"))
 
@@ -1235,6 +1337,11 @@ object AppStyles : StyleSheet() {
     */
 
     val sidebarTablet by style {
+
+        position(Position.Fixed)
+
+        top(0.px)
+        left(0.px)
 
         backgroundColor(Color("#2d3444"))
 
@@ -1503,5 +1610,18 @@ object AppStyles : StyleSheet() {
             "animation",
             "$skeletonKeyframes 1.2s ease-in-out infinite"
         )
+    }
+
+    val actionsGroup by style {
+        display(DisplayStyle.Flex)
+        justifyContent(JustifyContent.Center)
+        gap(8.px)
+
+        media(mediaMaxWidth(700.px)) {
+            self style {
+                flexDirection(FlexDirection.Column)
+                alignItems(AlignItems.Center)
+            }
+        }
     }
 }

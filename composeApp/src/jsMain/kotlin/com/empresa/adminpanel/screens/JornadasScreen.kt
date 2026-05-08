@@ -136,9 +136,9 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
 
             val url =
                 if (selectedUserId == "todos")
-                    "${ApiClient.BASE_URL}/admin/jornadas/pendientes"
+                    "${ApiClient.BASE_URL}/jornadas/pendientes-revision"
                 else
-                    "${ApiClient.BASE_URL}/admin/jornadas/pendientes?userId=$selectedUserId"
+                    "${ApiClient.BASE_URL}/jornadas/pendientes-revision?userId=$selectedUserId"
 
             val response =
                 window.fetch(url, requestInit)
@@ -184,23 +184,53 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
             requestInit["method"] = "GET"
             requestInit["headers"] = headers
 
+            val url =
+                if (selectedUserId == "todos") {
+                    "${ApiClient.BASE_URL}/jornadas/resumen-pendientes"
+                } else {
+                    "${ApiClient.BASE_URL}/jornadas/resumen-pendientes?userId=$selectedUserId"
+                }
+
             val response =
-                window.fetch(
-                    "${ApiClient.BASE_URL}/admin/jornadas/resumen",
-                    requestInit
-                ).await()
+                window.fetch(url, requestInit).await()
 
-            if (response.ok) {
+            // 🔥 CONTROL DE ERROR (A TU ESTILO)
+            if (!response.ok) {
 
-                val text =
-                    response.text().await()
+                console.error("Error cargando resumen:", response.status)
 
-                resumen =
-                    Json.decodeFromString(text)
+                resumen = null
+
+                return@launch
             }
+
+            // ✅ SOLO SI TODO OK
+            val text =
+                response.text().await()
+
+            val json = Json {
+                ignoreUnknownKeys = true
+            }
+
+            resumen = json.decodeFromString(text)
         }
     }
 
+    fun formatHora(timestamp: Long): String {
+
+        val options = js("""
+        ({
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+    """)
+
+        return Date(timestamp).toLocaleTimeString("es-ES", options)
+    }
+
+    fun formatFecha(timestamp: Long): String {
+        return Date(timestamp).toLocaleDateString("es-ES")
+    }
 
     /*
     ========================
@@ -416,7 +446,7 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
 
                         Text(
                             jornada.entradaReal
-                                ?.let { Date(it).toLocaleString() }
+                                ?.let { formatHora(it) }
                                 ?: "-"
                         )
                     }
@@ -425,7 +455,7 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
 
                         Text(
                             jornada.salidaReal
-                                ?.let { Date(it).toLocaleString() }
+                                ?.let { formatHora(it) }
                                 ?: "-"
                         )
                     }
@@ -480,7 +510,11 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
                     }
 
 
-                    Td {
+                    Td({
+
+                        classes(AppStyles.actionCell)
+
+                    }) {
 
                         Button({
 
@@ -500,12 +534,23 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
 
                         }) {
 
+                            Img(
+                                src = "/icons/revisar.svg",
+                                attrs = {
+                                    classes(AppStyles.deleteIcon)
+                                }
+                            )
+
                             Text("Revisar")
                         }
                     }
 
 
-                    Td {
+                    Td({
+
+                        classes(AppStyles.actionCell)
+
+                    }) {
 
                         Button({
 
@@ -517,6 +562,13 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
                             }
 
                         }) {
+
+                            Img(
+                                src = "/icons/historial.svg",
+                                attrs = {
+                                    classes(AppStyles.deleteIcon)
+                                }
+                            )
 
                             Text("Historial")
                         }
