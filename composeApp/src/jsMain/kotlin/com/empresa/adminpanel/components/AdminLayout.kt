@@ -157,7 +157,7 @@ fun AdminLayout(
 
             navItem("Horas extra", "/icons/horasextra.svg", "horasextra")
 
-            navItem("Jornadas", "/icons/jornada.svg", "jornadas")
+            navItem("Jornadas pendientes", "/icons/revision.svg", "jornadas")
             navItem("Jornadas globales", "/icons/jornada.svg", "jornadas_global")
         }
 

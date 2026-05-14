@@ -274,20 +274,46 @@ fun JornadasGlobalScreen() {
                         Span({
 
                             classes(
+
                                 when {
-                                    esCritica -> AppStyles.badgeDanger
-                                    j.cerradaAutomaticamente -> AppStyles.badgeWarning
-                                    else -> AppStyles.badgeSuccess
+
+                                    j.tipoIncidencia == "CORREGIDA" ->
+                                        AppStyles.badgeInfo
+
+                                    esCritica ->
+                                        AppStyles.badgeDanger
+
+                                    j.cerradaAutomaticamente ->
+                                        AppStyles.badgeWarning
+
+                                    j.tipoIncidencia == "EXTRA" ->
+                                        AppStyles.badgePrimary
+
+                                    else ->
+                                        AppStyles.badgeSuccess
                                 }
                             )
 
                         }) {
 
                             Text(
+
                                 when {
-                                    esCritica -> "Auto + Extra"
-                                    j.cerradaAutomaticamente -> "Automática"
-                                    else -> "Normal"
+
+                                    j.tipoIncidencia == "CORREGIDA" ->
+                                        "Corregida"
+
+                                    esCritica ->
+                                        "Auto + Extra"
+
+                                    j.cerradaAutomaticamente ->
+                                        "Automática"
+
+                                    j.tipoIncidencia == "EXTRA" ->
+                                        "Extra"
+
+                                    else ->
+                                        "Normal"
                                 }
                             )
                         }

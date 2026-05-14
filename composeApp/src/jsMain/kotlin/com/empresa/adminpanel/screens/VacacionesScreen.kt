@@ -634,13 +634,13 @@ fun VacacionesScreen() {
 
                                         Div({
 
-                                            classes(AppStyles.actionButtonsGroup)
+                                            classes(AppStyles.actionsGroup)
 
                                         }) {
 
                                             Button({
 
-                                                classes(AppStyles.approveButton)
+                                                classes(AppStyles.successButton)
 
                                                 onClick {
 
@@ -655,13 +655,15 @@ fun VacacionesScreen() {
 
                                             }) {
 
-                                                Text("Aprobar")
+                                                Img("/icons/check.svg"){
+                                                    classes(AppStyles.aproveIcon)
+                                                }
                                             }
 
 
                                             Button({
 
-                                                classes(AppStyles.rejectButton)
+                                                classes(AppStyles.dangerButton)
 
                                                 onClick {
 
@@ -676,7 +678,9 @@ fun VacacionesScreen() {
 
                                             }) {
 
-                                                Text("Rechazar")
+                                                Img("/icons/cross.svg"){
+                                                    classes(AppStyles.desAproveIcon)
+                                                }
                                             }
                                         }
                                     }

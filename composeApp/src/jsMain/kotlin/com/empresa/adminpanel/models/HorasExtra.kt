@@ -11,6 +11,7 @@ data class HorasExtra(
     val minutosExtra: Int,
     val estado: String,
     val aprobadoPor: Int? = null,
+    val aprobadoPorUsername: String? = null,
     val fechaRevision: Long? = null,
     val comentario: String? = null
 )

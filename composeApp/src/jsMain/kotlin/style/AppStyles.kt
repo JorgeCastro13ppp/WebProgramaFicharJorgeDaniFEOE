@@ -21,7 +21,7 @@ object AppStyles : StyleSheet() {
                 "sans-serif"
             )
 
-            fontSize(19.px)
+            fontSize(20.px)
 
             property(
                 "font-weight",
@@ -45,6 +45,13 @@ object AppStyles : StyleSheet() {
         }
 
     }
+
+    val textXs = 12.px
+    val textSm = 14.px
+    val textMd = 16.px
+    val textLg = 18.px
+    val textXl = 22.px
+    val textXxl = 24.px
 
 
     val title by style {
@@ -549,6 +556,11 @@ object AppStyles : StyleSheet() {
 
         backgroundColor(Color("#DBEAFE"))
         color(Color("#1E40AF"))
+
+        padding(4.px, 10.px)
+        borderRadius(6.px)
+        fontSize(16.px)
+
     }
 
     val rowApproved by style {
@@ -632,6 +644,19 @@ object AppStyles : StyleSheet() {
         borderRadius(12.px)
 
         fontWeight("500")
+    }
+
+    val badgePrimary by style {
+
+        backgroundColor(rgb(59, 130, 246))
+
+        color(Color.white)
+
+        padding(4.px, 10.px)
+        borderRadius(6.px)
+        fontSize(16.px)
+
+        fontWeight("600")
     }
 
     val actionCell by style {
@@ -1624,4 +1649,48 @@ object AppStyles : StyleSheet() {
             }
         }
     }
+
+    val textarea by style {
+
+        padding(12.px)
+
+        width(100.percent)
+
+        minHeight(110.px)
+
+        borderRadius(10.px)
+
+        border {
+            style(LineStyle.Solid)
+            width(1.px)
+            color(rgb(210, 214, 220))
+        }
+
+        fontSize(14.px)
+
+        property("resize", "vertical")
+
+        outline("none")
+
+        boxSizing("border-box")
+
+        marginTop(14.px)
+
+        marginBottom(10.px)
+
+        backgroundColor(Color.white)
+
+        color(rgb(45, 52, 68))
+
+        self style {
+            property("font-family", "inherit")
+        }
+
+    }
+
+    val modifyDiv by style {
+        display(DisplayStyle.Flex)
+        flexDirection(FlexDirection.Column)
+    }
+
 }

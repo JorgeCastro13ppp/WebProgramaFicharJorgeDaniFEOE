@@ -1,6 +1,7 @@
 package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
+import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.api.*
 import com.empresa.adminpanel.components.*
 import com.empresa.adminpanel.models.HorasExtra
@@ -283,7 +284,7 @@ fun HorasExtrasScreen() {
                     if (selectedEstado != "pendiente") {
 
                         Td {
-                            Text(extra.aprobadoPor?.toString() ?: "-")
+                            Text(extra.aprobadoPorUsername ?: "-")
                         }
 
                         Td {
@@ -362,5 +363,133 @@ fun HorasExtrasScreen() {
                 }
             }
         }
+
+
     }
+    if (selectedId != null && accion != null) {
+
+        ConfirmDialog(
+
+            message =
+
+                if (accion == "aprobado")
+                    "¿Seguro que deseas aprobar estas horas extra?"
+                else
+                    "¿Seguro que deseas rechazar estas horas extra?",
+
+            confirmText =
+
+                if (accion == "aprobado")
+                    "Aprobar"
+                else
+                    "Rechazar",
+
+            confirmClass =
+
+                if (accion == "aprobado")
+                    AppStyles.successButton
+                else
+                    AppStyles.dangerButton,
+
+            onCancel = {
+
+                selectedId = null
+                accion = null
+                comentario = ""
+            },
+
+            onConfirm = {
+
+                scope.launch {
+
+                    try {
+
+                        /*
+                        ========================
+                        VALIDACIÓN
+                        ========================
+                        */
+
+                        if (
+                            accion == "rechazado" &&
+                            comentario.isBlank()
+                        ) {
+
+                            return@launch
+                        }
+
+
+                        /*
+                        ========================
+                        API
+                        ========================
+                        */
+
+                        actualizarHorasExtra(
+
+                            id = selectedId!!,
+
+                            estado = accion!!,
+
+                            comentario =
+                                comentario.ifBlank { null }
+                        )
+
+
+                        /*
+                        ========================
+                        RECARGAR
+                        ========================
+                        */
+
+                        recargar()
+
+
+                        /*
+                        ========================
+                        LIMPIAR
+                        ========================
+                        */
+
+                        selectedId = null
+                        accion = null
+                        comentario = ""
+
+                    } catch (e: Exception) {
+
+                        console.error(e)
+                    }
+                }
+            },
+
+            extraContent = {
+
+                TextArea(
+
+                    value = comentario,
+
+                    attrs = {
+
+                        classes(AppStyles.textarea)
+
+                        placeholder(
+
+                            if (accion == "rechazado")
+                                "Comentario obligatorio"
+                            else
+                                "Comentario opcional"
+                        )
+
+                        onInput {
+
+                            comentario = it.value
+                        }
+                    }
+                )
+            }
+        )
+    }
+
+    println(ApiClient.authHeader())
+
 }

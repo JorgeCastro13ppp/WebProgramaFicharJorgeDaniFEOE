@@ -26,5 +26,6 @@ data class JornadaUsuario(
 
     val tiempoExtraDetectado: Long,
 
-    val cerradaAutomaticamente: Boolean
+    val cerradaAutomaticamente: Boolean,
+    val tipoIncidencia: String
 )

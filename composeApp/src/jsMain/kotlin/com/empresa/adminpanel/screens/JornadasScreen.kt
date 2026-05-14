@@ -2,10 +2,12 @@ package com.empresa.adminpanel.screens
 
 import androidx.compose.runtime.*
 import com.empresa.adminpanel.ApiClient
+import com.empresa.adminpanel.api.actualizarJornada
 import com.empresa.adminpanel.components.ConfirmDialog
 import com.empresa.adminpanel.components.ScreenHeader
 import com.empresa.adminpanel.components.StatAccent
 import com.empresa.adminpanel.components.StatCard
+import com.empresa.adminpanel.components.Toast
 import com.empresa.adminpanel.models.JornadaPendiente
 import com.empresa.adminpanel.models.JornadasResumen
 import com.empresa.adminpanel.models.Usuario
@@ -47,17 +49,27 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
         mutableStateOf<Int?>(null)
     }
 
-    var nuevaEntrada by remember {
-        mutableStateOf<Long?>(null)
+    var fechaEntrada by remember { mutableStateOf("") }
+    var horaEntrada by remember { mutableStateOf("") }
+
+    var fechaSalida by remember { mutableStateOf("") }
+    var horaSalida by remember { mutableStateOf("") }
+
+    var toastMessage by remember {
+
+        mutableStateOf<String?>(null)
     }
 
-    var nuevaSalida by remember {
-        mutableStateOf<Long?>(null)
+    var toastType by remember {
+
+        mutableStateOf("success")
     }
 
     var loading by remember {
         mutableStateOf(true)
     }
+
+
 
     val scope = rememberCoroutineScope()
 
@@ -238,58 +250,115 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
     ========================
     */
 
-    fun corregirJornada() {
+    fun guardarCorreccionJornada() {
 
-        val id =
-            selectedJornadaId ?: return
+        if (
+            fechaEntrada.isBlank() ||
+            horaEntrada.isBlank() ||
+            fechaSalida.isBlank() ||
+            horaSalida.isBlank()
+        ) {
+
+            toastMessage =
+                "Completa todos los campos"
+
+            toastType =
+                "warning"
+
+            return
+        }
+
+
+        val nuevaEntradaTimestamp =
+
+            Date(
+                "${fechaEntrada}T${horaEntrada}"
+            ).getTime().toLong()
+
+
+        val nuevaSalidaTimestamp =
+
+            Date(
+                "${fechaSalida}T${horaSalida}"
+            ).getTime().toLong()
+
+
+        if (
+            nuevaSalidaTimestamp <=
+            nuevaEntradaTimestamp
+        ) {
+
+            toastMessage =
+                "La salida debe ser posterior a la entrada"
+
+            toastType =
+                "warning"
+
+            return
+        }
+
 
         scope.launch {
 
-            val token =
-                window.localStorage.getItem("token")
-                    ?: return@launch
+            try {
 
-            val headers = Headers()
+                actualizarJornada(
 
-            headers.append(
-                "Authorization",
-                "Bearer $token"
-            )
+                    jornadaId =
+                        selectedJornadaId!!,
 
-            headers.append(
-                "Content-Type",
-                "application/json"
-            )
+                    nuevaEntradaReal =
+                        nuevaEntradaTimestamp,
 
-            val body =
-                """
-                {
-                    "entradaReal": $nuevaEntrada,
-                    "salidaReal": $nuevaSalida
-                }
-                """.trimIndent()
+                    nuevaSalidaReal =
+                        nuevaSalidaTimestamp
+                )
 
-            val requestInit = js("{}")
 
-            requestInit["method"] = "PUT"
-            requestInit["headers"] = headers
-            requestInit["body"] = body
-
-            val response =
-                window.fetch(
-                    "${ApiClient.BASE_URL}/admin/jornadas/$id/corregir",
-                    requestInit
-                ).await()
-
-            if (response.ok) {
+                /*
+                ========================
+                RESET
+                ========================
+                */
 
                 selectedJornadaId = null
 
-                nuevaEntrada = null
-                nuevaSalida = null
+                fechaEntrada = ""
+                horaEntrada = ""
+
+                fechaSalida = ""
+                horaSalida = ""
+
+
+                /*
+                ========================
+                RECARGAR
+                ========================
+                */
 
                 cargarPendientes()
                 cargarResumen()
+
+
+                /*
+                ========================
+                TOAST
+                ========================
+                */
+
+                toastMessage =
+                    "Jornada corregida correctamente"
+
+                toastType =
+                    "success"
+
+            } catch (e: Exception) {
+
+                toastMessage =
+                    e.message ?: "Error"
+
+                toastType =
+                    "error"
             }
         }
     }
@@ -428,7 +497,6 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
                 Th { Text("Fecha") }
                 Th { Text("Entrada") }
                 Th { Text("Salida") }
-                Th { Text("Estado") }
                 Th { Text("Acción") }
                 Th { Text("Historial") }
             }
@@ -461,55 +529,6 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
                     }
 
 
-                    /*
-                    ========================
-                    BADGE ESTADO AUTOMÁTICO
-                    ========================
-                    */
-
-                    Td {
-
-                        val esCritica =
-                            jornada.cerradaAutomaticamente &&
-                                    jornada.tiempoExtraDetectado > 0
-
-                        Span({
-
-                            classes(
-
-                                when {
-
-                                    esCritica ->
-                                        AppStyles.badgeDanger
-
-                                    jornada.cerradaAutomaticamente ->
-                                        AppStyles.badgeWarning
-
-                                    else ->
-                                        AppStyles.badgeSuccess
-                                }
-                            )
-
-                        }) {
-
-                            Text(
-
-                                when {
-
-                                    esCritica ->
-                                        "Auto + Extra"
-
-                                    jornada.cerradaAutomaticamente ->
-                                        "Automática"
-
-                                    else ->
-                                        "Normal"
-                                }
-                            )
-                        }
-                    }
-
-
                     Td({
 
                         classes(AppStyles.actionCell)
@@ -525,11 +544,35 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
                                 selectedJornadaId =
                                     jornada.id
 
-                                nuevaEntrada =
-                                    jornada.entradaReal
 
-                                nuevaSalida =
-                                    jornada.salidaReal
+                                jornada.entradaReal?.let {
+
+                                    val entrada =
+                                        Date(it)
+
+                                    fechaEntrada =
+                                        entrada.toISOString()
+                                            .substring(0, 10)
+
+                                    horaEntrada =
+                                        entrada.toTimeString()
+                                            .substring(0, 5)
+                                }
+
+
+                                jornada.salidaReal?.let {
+
+                                    val salida =
+                                        Date(it)
+
+                                    fechaSalida =
+                                        salida.toISOString()
+                                            .substring(0, 10)
+
+                                    horaSalida =
+                                        salida.toTimeString()
+                                            .substring(0, 5)
+                                }
                             }
 
                         }) {
@@ -598,58 +641,96 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
 
             extraContent = {
 
-                Div {
+                Div({
+
+                    classes(AppStyles.modifyDiv)
+
+                }) {
+
+                    /*
+                    ========================
+                    ENTRADA
+                    ========================
+                    */
 
                     Label {
-                        Text("Nueva entrada")
+
+                        Text("Fecha entrada")
                     }
 
-                    Input(
-                        type = InputType.DateTimeLocal
-                    ) {
+                    Input(InputType.Date) {
 
-                        value(
-                            nuevaEntrada
-                                ?.let {
-                                    Date(it)
-                                        .toISOString()
-                                        .substring(0, 16)
-                                } ?: ""
-                        )
+                        classes(AppStyles.input)
+
+                        value(fechaEntrada)
 
                         onInput {
 
-                            nuevaEntrada =
-                                it.value?.let {
-                                    Date(it).getTime().toLong()
-                                }
+                            fechaEntrada =
+                                it.value
                         }
                     }
 
 
                     Label {
-                        Text("Nueva salida")
+
+                        Text("Hora entrada")
                     }
 
-                    Input(
-                        type = InputType.DateTimeLocal
-                    ) {
+                    Input(InputType.Time) {
 
-                        value(
-                            nuevaSalida
-                                ?.let {
-                                    Date(it)
-                                        .toISOString()
-                                        .substring(0, 16)
-                                } ?: ""
-                        )
+                        classes(AppStyles.input)
+
+                        value(horaEntrada)
 
                         onInput {
 
-                            nuevaSalida =
-                                it.value?.let {
-                                    Date(it).getTime().toLong()
-                                }
+                            horaEntrada =
+                                it.value
+                        }
+                    }
+
+
+                    /*
+                    ========================
+                    SALIDA
+                    ========================
+                    */
+
+                    Label {
+
+                        Text("Fecha salida")
+                    }
+
+                    Input(InputType.Date) {
+
+                        classes(AppStyles.input)
+
+                        value(fechaSalida)
+
+                        onInput {
+
+                            fechaSalida =
+                                it.value
+                        }
+                    }
+
+
+                    Label {
+
+                        Text("Hora salida")
+                    }
+
+                    Input(InputType.Time) {
+
+                        classes(AppStyles.input)
+
+                        value(horaSalida)
+
+                        onInput {
+
+                            horaSalida =
+                                it.value
                         }
                     }
                 }
@@ -657,15 +738,33 @@ fun JornadasScreen(onOpenHistorial: (Int) -> Unit) {
 
             onConfirm = {
 
-                corregirJornada()
+                guardarCorreccionJornada()
             },
 
             onCancel = {
 
                 selectedJornadaId = null
 
-                nuevaEntrada = null
-                nuevaSalida = null
+                fechaEntrada = ""
+                horaEntrada = ""
+
+                fechaSalida = ""
+                horaSalida = ""
+            }
+        )
+    }
+
+    toastMessage?.let {
+
+        Toast(
+
+            message = it,
+
+            type = toastType,
+
+            onClose = {
+
+                toastMessage = null
             }
         )
     }

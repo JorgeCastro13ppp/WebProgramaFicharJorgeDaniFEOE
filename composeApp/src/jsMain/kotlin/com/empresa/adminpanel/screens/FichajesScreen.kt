@@ -502,22 +502,30 @@ fun FichajesScreen() {
 
                                 /* USUARIO */
 
-                                Td { Text(fichaje.username) }
+                                Td({
+                                    classes(AppStyles.urlCell)
+                                }) { Text(fichaje.username) }
 
 
                                 /* FECHA */
 
-                                Td { Text(fecha) }
+                                Td({
+                                    classes(AppStyles.urlCell)
+                                }) { Text(fecha) }
 
 
                                 /* HORA */
 
-                                Td { Text(hora) }
+                                Td({
+                                    classes(AppStyles.urlCell)
+                                }) { Text(hora) }
 
 
                                 /* TIPO */
 
-                                Td {
+                                Td({
+                                    classes(AppStyles.urlCell)
+                                }) {
 
                                     Span({
 

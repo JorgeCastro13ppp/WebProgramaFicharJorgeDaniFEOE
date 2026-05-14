@@ -3,8 +3,10 @@ package com.empresa.adminpanel.api
 import com.empresa.adminpanel.ApiClient
 import com.empresa.adminpanel.models.HorasExtra
 import com.empresa.adminpanel.models.HorasExtrasResumen
+import com.empresa.adminpanel.models.RevisarHorasExtra
 import kotlinx.browser.window
 import kotlinx.coroutines.await
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.w3c.fetch.RequestInit
 
@@ -59,44 +61,65 @@ suspend fun cargarHorasExtrasPorEstado(
 
 
 suspend fun actualizarHorasExtra(
+
     id: Int,
+
     estado: String,
+
     comentario: String? = null
+
 ) {
 
-    window.fetch(
-        "${ApiClient.BASE_URL}/horas-extra/$id",
-        jsObject<RequestInit> {
-            method = "PUT"
-            headers = jsObject {
-                asDynamic()["Authorization"] = ApiClient.authHeader()
-                asDynamic()["Content-Type"] = "application/json"
-            }
-            body = JSON.stringify(
-                jsObject<dynamic> {
-                    this.estado = estado
-                    this.comentario = comentario
-                }
-            )
-        }
-    ).await()
+    val headers = js("new Headers()")
 
-    val queryComentario =
-        comentario?.let { "&comentario=$it" } ?: ""
+    headers.append(
+        "Authorization",
+        ApiClient.authHeader()
+    )
+
+    headers.append(
+        "Content-Type",
+        "application/json"
+    )
+
+    console.log(ApiClient.authHeader())
 
     val response =
         window.fetch(
-            "${ApiClient.BASE_URL}/horas-extra/$id?estado=$estado$queryComentario",
-            jsObject {
+
+            "${ApiClient.BASE_URL}/horas-extra/$id",
+
+            jsObject<RequestInit> {
+
                 method = "PUT"
-                headers = jsObject {
-                    this["Authorization"] = ApiClient.authHeader()
-                }
+
+                this.headers = headers
+
+                body =
+                    Json.encodeToString(
+
+                        RevisarHorasExtra(
+
+                            estado = estado,
+
+                            comentario = comentario
+                        )
+                    )
             }
         ).await()
 
-    if (!response.ok)
-        error("Error actualizando hora extra")
+
+    if (!response.ok) {
+
+        val errorText =
+            response.text().await()
+
+        console.error(errorText)
+
+        error(
+            "Error actualizando hora extra"
+        )
+    }
 }
 
 suspend fun cargarHorasExtrasPorEstadoYUsuario(

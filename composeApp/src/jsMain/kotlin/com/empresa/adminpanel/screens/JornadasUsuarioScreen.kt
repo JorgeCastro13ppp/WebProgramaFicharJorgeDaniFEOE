@@ -262,26 +262,60 @@ fun JornadasUsuarioScreen(
                         }
                     }
 
-                    Td {
+                    Td({
+
+                        classes(AppStyles.statusCell)
+
+                    }) {
+
+                        val esCritica =
+                            jornada.cerradaAutomaticamente &&
+                                    jornada.tiempoExtraDetectado > 0
 
                         Span({
 
                             classes(
 
-                                if (jornada.cerradaAutomaticamente)
-                                    AppStyles.badgeWarning
-                                else
-                                    AppStyles.badgeSuccess
+                                when {
+
+                                    jornada.tipoIncidencia == "CORREGIDA" ->
+                                        AppStyles.badgeInfo
+
+                                    esCritica ->
+                                        AppStyles.badgeDanger
+
+                                    jornada.cerradaAutomaticamente ->
+                                        AppStyles.badgeWarning
+
+                                    jornada.tipoIncidencia == "EXTRA" ->
+                                        AppStyles.badgePrimary
+
+                                    else ->
+                                        AppStyles.badgeSuccess
+                                }
                             )
 
                         }) {
 
                             Text(
 
-                                if (jornada.cerradaAutomaticamente)
-                                    "Automática"
-                                else
-                                    "Normal"
+                                when {
+
+                                    jornada.tipoIncidencia == "CORREGIDA" ->
+                                        "Corregida"
+
+                                    esCritica ->
+                                        "Auto + Extra"
+
+                                    jornada.cerradaAutomaticamente ->
+                                        "Automática"
+
+                                    jornada.tipoIncidencia == "EXTRA" ->
+                                        "Extra"
+
+                                    else ->
+                                        "Normal"
+                                }
                             )
                         }
                     }
