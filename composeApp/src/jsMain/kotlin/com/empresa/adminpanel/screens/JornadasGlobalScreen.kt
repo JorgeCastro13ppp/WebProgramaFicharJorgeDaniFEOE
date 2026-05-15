@@ -208,7 +208,9 @@ fun JornadasGlobalScreen() {
 
                 Tr {
 
-                    Td { Text(j.username ?: "-") }
+                    Td({
+                        classes(AppStyles.urlCell)
+                    }) { Text(j.username ?: "-") }
 
                     Td { Text(j.fecha) }
 
